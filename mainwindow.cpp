@@ -1,21 +1,21 @@
 #include "mainwindow.h"
-#include "batteryinfowidget.h"
+#include "ui_mainwindow.h"
 
-MainWindow::MainWindow(QWidget *parent)
-    : QMainWindow(parent)
+MainWindow::MainWindow(QWidget *parent) :
+    QMainWindow(parent),
+    ui(new Ui::MainWindow)
 {
-    this->resize(640,480);
-    QPalette pal(this->palette());
-    pal.setColor(QPalette::Background, QColor(60,60,60,200));
-    this->setAutoFillBackground(true);
-    this->setPalette(pal);
-//    setStyleSheet("background-color:#282828;");
+    ui->setupUi(this);
 
-    BatteryInfoWidget *infoWidget = new BatteryInfoWidget();
-    this->setCentralWidget(infoWidget);
+        QPalette pal(this->palette());
+        pal.setColor(QPalette::Background, QColor(60,60,60,200));
+        this->setAutoFillBackground(true);
+        this->setPalette(pal);
+    //    setStyleSheet("background-color:#282828;");
+
 }
 
 MainWindow::~MainWindow()
 {
-
+    delete ui;
 }

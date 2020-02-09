@@ -18,3 +18,6 @@ SOURCES += main.cpp\
 
 HEADERS  += mainwindow.h \
     batteryinfowidget.h
+
+FORMS += \
+    mainwindow.ui
