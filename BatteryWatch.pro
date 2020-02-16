@@ -5,6 +5,7 @@
 #-------------------------------------------------
 
 QT       += core gui
+QT += network
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
@@ -14,10 +15,14 @@ TEMPLATE = app
 
 SOURCES += main.cpp\
         mainwindow.cpp \
-    batteryinfowidget.cpp
+    batteryinfowidget.cpp \
+    server.cpp \
+    tcpclientsocket.cpp
 
 HEADERS  += mainwindow.h \
-    batteryinfowidget.h
+    batteryinfowidget.h \
+    server.h \
+    tcpclientsocket.h
 
 FORMS += \
     mainwindow.ui

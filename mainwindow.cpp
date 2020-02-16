@@ -1,5 +1,6 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
+#include "server.h"
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
@@ -12,6 +13,10 @@ MainWindow::MainWindow(QWidget *parent) :
         this->setAutoFillBackground(true);
         this->setPalette(pal);
     //    setStyleSheet("background-color:#282828;");
+
+   Server *tcpServer = new Server(this,7869);
+   // todo 处理网络数据
+   // connect(tcpServer, &Server::updateserver,NULL, NULL);
 
 }
 
