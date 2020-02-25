@@ -3,6 +3,8 @@
 
 #include <QMainWindow>
 
+class Server;
+class DataHandler;
 namespace Ui {
 class MainWindow;
 }
@@ -17,6 +19,8 @@ public:
 
 private:
     Ui::MainWindow *ui;
+    Server *mTcpServer;
+    DataHandler *mDataHandler;
 };
 
 #endif // MAINWINDOW_H

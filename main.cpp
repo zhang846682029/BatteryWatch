@@ -1,5 +1,8 @@
 #include "mainwindow.h"
+#include "datahandler.h"
 #include <QApplication>
+#include <QSqlDatabase>
+#include <QDebug>
 
 int main(int argc, char *argv[])
 {

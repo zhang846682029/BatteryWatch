@@ -57,44 +57,45 @@ void TcpClientSocket::receivedata()
     unsigned short voltage1=array.at(20);
     unsigned short voltage2=array.at(21);
     unsigned short voltage3 = voltage1<<8|voltage2;
-    float voltage = voltage3;
-    voltage = voltage*0.01;
+//    float voltage = voltage3;
+//    voltage = voltage*0.01;
     // 电流
     unsigned short current1=array.at(22);
     unsigned short current2=array.at(23);
     unsigned short current3 = current1<<8|current2;
-    float current = current3;
-    current = current*0.01;
+//    float current = current3;
+//    current = current*0.01;
     // 额定容量
     unsigned short volume1=array.at(24);
     unsigned short volume2=array.at(25);
     unsigned short volume3 = volume1<<8|volume2;
-    float volume = volume3;
-    volume = volume*0.1;
-    qDebug()<<"3"<<power_rate<<voltage<<current<<volume;
+//    float volume = volume3;
+//    volume = volume*0.1;
+//    qDebug()<<"3"<<power_rate<<voltage<<current<<volume;
     // 温度
-    unsigned short temp1=array.at(26);
-    unsigned short temp2=array.at(27);
-    unsigned short temp3 = temp1<<8|temp2;
+    short temp1=array.at(26);
+    short temp2=array.at(27);
+    short temp3 = temp1<<8|temp2;
     bool flag1=false; // 最高位F表明温度为负
     if(temp3&0xF000==0xF000){
         flag1=true;
     }
     temp3 = temp3&0x0FFF;
-    float temp = temp3;
-    temp = temp*0.1;
-    temp=flag1?0-temp:temp;
+    temp3=flag1?0-temp3:temp3;
+//    float temp = temp3;
+//    temp = temp*0.1;
+//    temp=flag1?0-temp:temp;
     // 电流方向 0-放电 1-充电 2-待机
     unsigned char direction=array.at(28);
     // 循环次数
     unsigned short count1=array.at(29);
     unsigned short count2=array.at(30);
     unsigned short count3 = count1<<8|count2;
-    float count = count3;
-    count = count*0.1;
+//    float count = count3;
+//    count = count*0.1;
     // 报警 1-报警 0-不是报警
     unsigned char alarm=array.at(31);
-    qDebug()<<"4"<<temp<<direction<<count<<alarm;
+//    qDebug()<<"4"<<temp<<direction<<count<<alarm;
     // 上传时间间隔
     unsigned short interval1=array.at(36);
     unsigned short interval2=array.at(37);
@@ -111,12 +112,12 @@ void TcpClientSocket::receivedata()
     json_obj["identify"]=json_obj_identify;
     QJsonObject json_obj_property;
     json_obj_property["rate"]=power_rate;
-    json_obj_property["voltage"]=voltage;
-    json_obj_property["current"]=current;
-    json_obj_property["volume"]=volume;
-    json_obj_property["temp"]=temp;
+    json_obj_property["voltage"]=voltage3;
+    json_obj_property["current"]=current3;
+    json_obj_property["volume"]=volume3;
+    json_obj_property["temp"]=temp3;
     json_obj_property["direction"]=direction;
-    json_obj_property["count"]=count;
+    json_obj_property["count"]=count3;
     json_obj_property["alarm"]=alarm;
     json_obj_property["interval"]=interval;
     json_obj["property"]=json_obj_property;

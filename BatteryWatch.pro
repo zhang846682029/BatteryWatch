@@ -6,6 +6,7 @@
 
 QT       += core gui
 QT += network
+QT += sql
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
@@ -17,12 +18,14 @@ SOURCES += main.cpp\
         mainwindow.cpp \
     batteryinfowidget.cpp \
     server.cpp \
-    tcpclientsocket.cpp
+    tcpclientsocket.cpp \
+    datahandler.cpp
 
 HEADERS  += mainwindow.h \
     batteryinfowidget.h \
     server.h \
-    tcpclientsocket.h
+    tcpclientsocket.h \
+    datahandler.h
 
 FORMS += \
     mainwindow.ui
