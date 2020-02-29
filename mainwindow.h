@@ -17,6 +17,9 @@ public:
     explicit MainWindow(QWidget *parent = 0);
     ~MainWindow();
 
+public slots:
+    void slotTreeModeUpdate(void);
+
 private:
     Ui::MainWindow *ui;
     Server *mTcpServer;

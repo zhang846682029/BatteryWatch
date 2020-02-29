@@ -18,7 +18,7 @@
     <item>
      <layout class="QHBoxLayout" name="horizontalLayout_2">
       <item>
-       <widget class="QTreeView" name="treeView">
+       <widget class="QTreeView" name="treeViewDevice">
         <property name="sizePolicy">
          <sizepolicy hsizetype="Maximum" vsizetype="Expanding">
           <horstretch>0</horstretch>
@@ -31,6 +31,41 @@
           <height>16777215</height>
          </size>
         </property>
+        <property name="styleSheet">
+         <string notr="true">
+QTreeView::branch:has-siblings:!adjoins-item {
+      border-image: url(:/images/stylesheet-vline.png) 0;
+  }
+
+  QTreeView::branch:has-siblings:adjoins-item {
+      border-image: url(:/images/stylesheet-branch-more.png) 0;
+  }
+
+  QTreeView::branch:!has-children:!has-siblings:adjoins-item {
+      border-image: url(:/images/stylesheet-branch-end.png) 0;
+  }
+
+  QTreeView::branch:has-children:!has-siblings:closed,
+  QTreeView::branch:closed:has-children:has-siblings {
+          border-image: none;
+          image: url(:/images/stylesheet-branch-closed.png);
+  }
+
+  QTreeView::branch:open:has-children:!has-siblings,
+  QTreeView::branch:open:has-children:has-siblings  {
+          border-image: none;
+          image: url(:/images/stylesheet-branch-open.png);
+  }</string>
+        </property>
+        <property name="alternatingRowColors">
+         <bool>false</bool>
+        </property>
+        <property name="itemsExpandable">
+         <bool>true</bool>
+        </property>
+        <attribute name="headerVisible">
+         <bool>false</bool>
+        </attribute>
        </widget>
       </item>
       <item>
@@ -54,7 +89,7 @@
     <item>
      <layout class="QHBoxLayout" name="horizontalLayout">
       <item>
-       <widget class="QTableView" name="tableView">
+       <widget class="QTableView" name="tableViewDeviceDetail">
         <property name="sizePolicy">
          <sizepolicy hsizetype="Expanding" vsizetype="Maximum">
           <horstretch>0</horstretch>
@@ -70,7 +105,7 @@
        </widget>
       </item>
       <item>
-       <widget class="QTableView" name="tableView_2">
+       <widget class="QTableView" name="tableViewWarnningInfo">
         <property name="sizePolicy">
          <sizepolicy hsizetype="Expanding" vsizetype="Maximum">
           <horstretch>0</horstretch>
@@ -114,6 +149,8 @@
    <container>1</container>
   </customwidget>
  </customwidgets>
- <resources/>
+ <resources>
+  <include location="ui-resource.qrc"/>
+ </resources>
  <connections/>
 </ui>
