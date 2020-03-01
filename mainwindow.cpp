@@ -24,12 +24,18 @@ MainWindow::MainWindow(QWidget *parent) :
     mDataHandler = new DataHandler(this);
     connect(mTcpServer, &Server::sigPowerInfo, \
             mDataHandler, &DataHandler::slotAppendPowerInfo);
-//    QStandardItemModel mModelTree;
-//    ui->treeViewDevice->setModel(&mModelTree);
+
+    // 设备树
     ui->treeViewDevice->setModel(mDataHandler->getDeviceTreeModel());
     ui->treeViewDevice->expandAll();
-    connect(ui->treeViewDevice,&QTreeView::clicked,mDataHandler,&DataHandler::slotItemClicked);
-    connect(mDataHandler,&DataHandler::sigTreeModelUpdate,this,&MainWindow::slotTreeModeUpdate);
+    // 右键菜单
+    ui->treeViewDevice->setContextMenuPolicy(Qt::CustomContextMenu);
+    connect(ui->treeViewDevice, &QTreeView::customContextMenuRequested, \
+            this, &MainWindow::slotTreeMenu);
+    connect(ui->treeViewDevice,&QTreeView::clicked,\
+            mDataHandler,&DataHandler::slotItemClicked);
+    connect(mDataHandler,&DataHandler::sigTreeModelUpdate,\
+            this,&MainWindow::slotTreeModeUpdate);
 }
 
 MainWindow::~MainWindow()
@@ -40,4 +46,14 @@ MainWindow::~MainWindow()
 void MainWindow::slotTreeModeUpdate()
 {
     ui->treeViewDevice->expandAll();
+}
+
+void MainWindow::slotTreeMenu(const QPoint &pos)
+{
+    QMenu *menu = new QMenu(ui->treeViewDevice);
+    QAction *a1=new QAction(tr("Group Editor"));
+    menu->addAction(a1);
+    QAction *a2=new QAction(tr("Device Editor"));
+    menu->addAction(a2);
+    menu->exec(ui->treeViewDevice->mapToGlobal(pos));
 }

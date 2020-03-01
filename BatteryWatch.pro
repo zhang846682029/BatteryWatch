@@ -19,16 +19,19 @@ SOURCES += main.cpp\
     batteryinfowidget.cpp \
     server.cpp \
     tcpclientsocket.cpp \
-    datahandler.cpp
+    datahandler.cpp \
+    dialoggroupeditor.cpp
 
 HEADERS  += mainwindow.h \
     batteryinfowidget.h \
     server.h \
     tcpclientsocket.h \
-    datahandler.h
+    datahandler.h \
+    dialoggroupeditor.h
 
 FORMS += \
-    mainwindow.ui
+    mainwindow.ui \
+    dialoggroupeditor.ui
 
 RESOURCES += \
     ui-resource.qrc

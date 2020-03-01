@@ -19,6 +19,7 @@ public:
 
 public slots:
     void slotTreeModeUpdate(void);
+    void slotTreeMenu(const QPoint &pos);
 
 private:
     Ui::MainWindow *ui;
