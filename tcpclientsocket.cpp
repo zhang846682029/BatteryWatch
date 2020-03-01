@@ -16,7 +16,9 @@ TcpClientSocket::TcpClientSocket(QObject *parent):QTcpSocket(parent)
 void TcpClientSocket::receivedata()
 {
     QByteArray array=readAll();
-    qDebug()<<peerAddress().toString()<<peerPort()<<array.size()<<array.toHex();
+//    qDebug()<<peerAddress().toString()<<peerPort()<<array.size()<<array.toHex();
+    QHostAddress client_ipv4(peerAddress().toIPv4Address());
+    qDebug()<<client_ipv4.toString()<<peerPort()<<array.size()<<array.toHex();
 
     const unsigned char ack_data[]={0x5A,0xA5,0x03,0x00,0x00,0x00,0x00,0x02};
     QByteArray array1((const char*)ack_data,sizeof(ack_data));
@@ -34,12 +36,21 @@ void TcpClientSocket::receivedata()
     unsigned char data_func_code=array.at(3);
     qDebug()<<"1"<<data_len<<data_func_code;
     //
-    unsigned char ip1=array.at(4);
-    unsigned char ip2=array.at(5);
-    unsigned char ip3=array.at(6);
-    unsigned char ip4=array.at(7);
-    QString data_client_ip = QString("%1.%2.%3.%4")\
-            .arg(ip1).arg(ip2).arg(ip3).arg(ip4);
+//    unsigned char ip1=array.at(4);
+//    unsigned char ip2=array.at(5);
+//    unsigned char ip3=array.at(6);
+//    unsigned char ip4=array.at(7);
+//    QString data_client_ip = QString("%1.%2.%3.%4")
+//            .arg(ip1).arg(ip2).arg(ip3).arg(ip4);
+    QString data_client_ip = client_ipv4.toString();
+    // 客户端编号 1-60000 默认为0
+    unsigned short data_client_id1=array.at(11);
+    unsigned short data_client_id2=array.at(12);
+    unsigned short data_client_id = data_client_id1<<8|data_client_id2;
+    if(data_client_id<1||data_client_id>60000){
+        qDebug()<<__FUNCTION__<<"data_client_id"<<data_client_id;
+        return;
+    }
     unsigned char mac1=array.at(13);
     unsigned char mac2=array.at(14);
     unsigned char mac3=array.at(15);
@@ -50,7 +61,7 @@ void TcpClientSocket::receivedata()
             .arg(mac1,2,16,QChar(0)).arg(mac2,2,16,QChar(0))\
             .arg(mac3,2,16,QChar(0)).arg(mac4,2,16,QChar(0))\
             .arg(mac5,2,16,QChar(0)).arg(mac6,2,16,QChar(0));
-    qDebug()<<"2"<<data_client_ip<<data_client_mac;
+    qDebug()<<"2"<<data_client_id<<data_client_ip<<data_client_mac;
     // 电量百分比
     unsigned char power_rate = array.at(19);
     // 电压
@@ -93,8 +104,10 @@ void TcpClientSocket::receivedata()
     unsigned short count3 = count1<<8|count2;
 //    float count = count3;
 //    count = count*0.1;
-    // 报警 1-报警 0-不是报警
+    // 通讯状态 0-掉线 1-在线 掉线时数据不可信
     unsigned char alarm=array.at(31);
+    // 报警 1-报警 0-不是报警
+    unsigned char alive=array.at(32);
 //    qDebug()<<"4"<<temp<<direction<<count<<alarm;
     // 上传时间间隔
     unsigned short interval1=array.at(36);
@@ -108,7 +121,9 @@ void TcpClientSocket::receivedata()
     QJsonObject json_obj_identify;
     json_obj_identify["ip"]=data_client_ip;
     json_obj_identify["mac"]=data_client_mac;
+    json_obj_identify["id"]=data_client_id; // 电脑编号
     json_obj_identify["address"]=address;
+    json_obj_identify["alive"]=alive;
     json_obj["identify"]=json_obj_identify;
     QJsonObject json_obj_property;
     json_obj_property["rate"]=power_rate;

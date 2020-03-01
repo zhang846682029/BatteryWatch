@@ -37,7 +37,7 @@ public:
     void onZoneModify(int id, QString name_from, QString name_to);
     void onGroupAppend(int id, QString name);
     void onZoneAppend(QString name);
-    void onDeviceAppend(QString ip, QString mac, int address);
+    void onDeviceAppend(int id, QString ip, QString mac, int address);
 
 signals:
     void sigTreeModelUpdate(void);
@@ -45,20 +45,21 @@ signals:
 public slots:
 
     void slotItemClicked(const QModelIndex &index);
-    void slotAppendPowerInfo(QString data, int len);
+    void slotAppendPowerInfo(QString data, bool valid);
     void timerEvent(QTimerEvent *event);
 
 private:
     bool mDatabaseValid;
 
+    int mCurrentClient; // 当前的设备 电脑编号
     QString mCurrentMac; // 当前的设备 mac
     int mCurrentAddress; // 当前的设备 address
 
     QStandardItemModel *mModelTree;  // 设备列表数据模型
-    QMap<QString,QTime> mOnlineTime; // 记录设备最后一次上传数据的时间
+    QMap<int,QTime> mOnlineTime; // 记录设备最后一次上传数据的时间
                                      // 超过3分钟没有数据就显示为离线
                                      // 超过半小时没有数据就记录一次报警信息
-    QMap<QString,QStandardItem *> mDeviceWithoutGroupItem;
+    QMap<int,QStandardItem *> mDeviceWithoutGroupItem;
 };
 
 #endif // DATAHANDLER_H

@@ -73,9 +73,11 @@ DataHandler::~DataHandler()
 void DataHandler::creatTablePowerInfo()
 {
     QString sql = QString("CREATE TABLE [batteryPowerInfo]("
-                          "[ip] TEXT NOT NULL,"
-                          "[mac] TEXT NOT NULL,"
-                          "[address] INTEGER NOT NULL, "
+                          "[sn] INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL UNIQUE, "
+                          "[clientId] INTEGER NOT NULL, "
+                          "[clientIp] TEXT, "
+                          "[clientMac] TEXT, "
+                          "[clientAddress] INTEGER, "
                           "[rate] INTEGER NOT NULL, "
                           "[voltage] INTEGER NOT NULL, "
                           "[current] INTEGER NOT NULL, "
@@ -84,7 +86,7 @@ void DataHandler::creatTablePowerInfo()
                           "[direction] INTEGER NOT NULL, "
                           "[count] INTEGER NOT NULL, "
                           "[alarm] INTEGER NOT NULL, "
-                          "[interval] INTEGER,"
+                          "[interval] INTEGER, "
                           "[time] TIME);");
     QSqlQuery query;
     query.exec(sql);
@@ -94,10 +96,11 @@ void DataHandler::creatTableWarningInfo()
 {
     // id 事件编号 工单表中根据这个id找到具体的事件信息
     QString sql = QString("CREATE TABLE [warningInfo]("
-                          "[id] INTEGER NOT NULL UNIQUE, "
-                          "[ip] TEXT, "
-                          "[mac] TEXT NOT NULL, "
-                          "[address] INTEGER NOT NULL, "
+                          "[id] INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL UNIQUE, "
+                          "[clientId] INTEGER NOT NULL, "
+                          "[clientIp] TEXT, "
+                          "[clientMac] TEXT, "
+                          "[clientAddress] INTEGER, "
                           "[event] INTEGER NOT NULL REFERENCES [eventInfo]([id]), "
                           "[time] TIME NOT NULL);");
     QSqlQuery query;
@@ -134,15 +137,16 @@ void DataHandler::creatTableEventInfo()
 void DataHandler::creatTableBatteryDetailInfo()
 {
     QString sql = QString("CREATE TABLE [batteryDetailInfo]("
-                          "[ip] TEXT, "
-                          "[mac] TEXT NOT NULL UNIQUE, "
-                          "[address] INTEGER NOT NULL, "
+                          "[clientId] INTEGER PRIMARY KEY NOT NULL UNIQUE, "
+                          "[clientIp] TEXT, "
+                          "[clientMac] TEXT, "
+                          "[clientAddress] INTEGER, "
                           "[manufacturer] TEXT, "
                           "[serialNumber] TEXT, "
                           "[installationDate] TIME, "
                           "[batteryVolume] FLOAT, "
-                          "[zoneId] INTEGER DEFAULT 0 REFERENCES [zoneInfo]([id]) ON DELETE SET DEFAULT, "
-                          "[groupId] INTEGER DEFAULT 0 REFERENCES [groupInfo]([id]) ON DELETE SET DEFAULT);");
+                          "[zoneId] INTEGER DEFAULT 1 REFERENCES [zoneInfo]([id]) ON DELETE SET DEFAULT, "
+                          "[groupId] INTEGER DEFAULT 1 REFERENCES [groupInfo]([id]) ON DELETE SET DEFAULT);");
     QSqlQuery query;
     query.exec(sql);
 }
@@ -235,7 +239,7 @@ void DataHandler::getDeviceTree()
 //        it1++;
     }
 
-    QMap<QString,QStandardItem *> map_device_item;
+    QMap<int,QStandardItem *> map_device_item;
     QMapIterator<int,QStandardItem *> it2(map_group_item);
     while (it2.hasNext()) {
         it2.next();
@@ -244,22 +248,24 @@ void DataHandler::getDeviceTree()
         bool r1=query.exec(sql);
         qDebug()<<r1<<sql;
         while(query.next()){
-            QString device_mac=query.value(1).toString();
-            int device_address=query.value(2).toInt();
+            int device_id=query.value(0).toInt();
+            QString device_ip=query.value(1).toString();
+            QString device_mac=query.value(2).toString();
+            int device_address=query.value(3).toInt();
             QString device_address_str = QString::number(device_address);
-            QString device_ip=query.value(0).toString();
-            QString device_manufacturer=query.value(3).toString();
-            QString device_sn=query.value(4).toString();
-            QString device_install=query.value(5).toDateTime().toString("yyyy-MM-dd hh:mm:ss");
+            QString device_manufacturer=query.value(4).toString();
+            QString device_sn=query.value(5).toString();
+            QString device_install=query.value(6).toDateTime().toString("yyyy-MM-dd hh:mm:ss");
 //            float device_volume=query.value(1).toFloat();
-            QString device_volume=QString::number(query.value(6).toFloat());
-            int zone_id = query.value(7).toInt();
+            QString device_volume=QString::number(query.value(7).toFloat());
+            int zone_id = query.value(8).toInt();
             QStandardItem *item_z = map_zone_item.value(zone_id,NULL);
             QString device_zone = item_z!=NULL?item_z->data().toString():QString();
-            int group_id = query.value(8).toInt();
+            int group_id = query.value(9).toInt();
             QStandardItem *item_g = map_group_item.value(group_id,NULL);
             QString device_group = item_g!=NULL?item_g->data().toString():QString();
             QJsonObject device_info_map;
+            device_info_map["id"]=QString::number(device_id);
             device_info_map["ip"]=device_ip;
             device_info_map["mac"]=device_mac;
             device_info_map["address"]=device_address_str;
@@ -273,38 +279,40 @@ void DataHandler::getDeviceTree()
             QByteArray array=doc.toJson();
 
             QStandardItem *item = new QStandardItem(QString("%1 [%2]")
-                                                    .arg(device_mac)
-                                                    .arg(device_address,3,10,QChar('0')));
+                                                    .arg(device_id,3,10,QChar('0'))
+                                                    .arg(device_ip));
             item->setData(array);
-            map_device_item[device_mac]=item;
+            map_device_item[device_id]=item;
             it2.value()->appendRow(item);
         }
     }
 
-    QMap<QString,QStandardItem *> map_device_without_group_item;
+    QMap<int,QStandardItem *> map_device_without_group_item;
     if(true){
         QString sql = QString("SELECT * FROM batteryDetailInfo");
         bool r1=query.exec(sql);
         qDebug()<<r1<<sql;
         while(query.next()){
-            QString device_mac=query.value(1).toString();
-            if(map_device_item.contains(device_mac)) continue;
+            int device_id=query.value(0).toInt();
+            if(map_device_item.contains(device_id)) continue;
 
-            int device_address=query.value(2).toInt();
+            QString device_ip=query.value(1).toString();
+            QString device_mac=query.value(2).toString();
+            int device_address=query.value(3).toInt();
             QString device_address_str = QString::number(device_address);
-            QString device_ip=query.value(0).toString();
-            QString device_manufacturer=query.value(3).toString();
-            QString device_sn=query.value(4).toString();
-            QString device_install=query.value(5).toDateTime().toString("yyyy-MM-dd hh:mm:ss");
-            //            float device_volume=query.value(1).toFloat();
-            QString device_volume=QString::number(query.value(6).toFloat());
-            int zone_id = query.value(7).toInt();
+            QString device_manufacturer=query.value(4).toString();
+            QString device_sn=query.value(5).toString();
+            QString device_install=query.value(6).toDateTime().toString("yyyy-MM-dd hh:mm:ss");
+//            float device_volume=query.value(1).toFloat();
+            QString device_volume=QString::number(query.value(7).toFloat());
+            int zone_id = query.value(8).toInt();
             QStandardItem *item_z = map_zone_item.value(zone_id,NULL);
             QString device_zone = item_z!=NULL?item_z->data().toString():QString();
-            int group_id = query.value(8).toInt();
+            int group_id = query.value(9).toInt();
             QStandardItem *item_g = map_group_item.value(group_id,NULL);
             QString device_group = item_g!=NULL?item_g->data().toString():QString();
             QJsonObject device_info_map;
+            device_info_map["id"]=QString::number(device_id);
             device_info_map["ip"]=device_ip;
             device_info_map["mac"]=device_mac;
             device_info_map["address"]=device_address_str;
@@ -318,10 +326,10 @@ void DataHandler::getDeviceTree()
             QByteArray array=doc.toJson();
 
             QStandardItem *item = new QStandardItem(QString("%1 [%2]")
-                                                    .arg(device_mac)
-                                                    .arg(device_address,3,10,QChar('0')));
+                                                    .arg(device_id,3,10,QChar('0'))
+                                                    .arg(device_ip));
             item->setData(array);
-            map_device_without_group_item[device_mac]=item;
+            map_device_without_group_item[device_id]=item;
         }
     }
 
@@ -333,7 +341,7 @@ void DataHandler::getDeviceTree()
         parentItem->appendRow(it3.value());
     }
 
-    QMapIterator<QString,QStandardItem *> it6(map_device_without_group_item);
+    QMapIterator<int,QStandardItem *> it6(map_device_without_group_item);
     while (it6.hasNext()) {
         it6.next();
         parentItem->appendRow(it6.value());
@@ -343,7 +351,7 @@ void DataHandler::getDeviceTree()
     // 掉线(没上线) 在线
     map_device_item.unite(map_device_without_group_item);
     mDeviceWithoutGroupItem.swap(map_device_item);
-    QMapIterator<QString,QStandardItem *> it4(mDeviceWithoutGroupItem);
+    QMapIterator<int,QStandardItem *> it4(mDeviceWithoutGroupItem);
     while (it4.hasNext()) {
         it4.next();
         auto it5 = mOnlineTime.find(it4.key());
@@ -365,7 +373,7 @@ void DataHandler::getDeviceTree()
 
 void DataHandler::updateOnlineStatus()
 {
-    QMapIterator<QString,QStandardItem *> it4(mDeviceWithoutGroupItem);
+    QMapIterator<int,QStandardItem *> it4(mDeviceWithoutGroupItem);
     while (it4.hasNext()) {
         it4.next();
         auto it5 = mOnlineTime.find(it4.key());
@@ -395,17 +403,17 @@ void DataHandler::onGroupDelete(int id)
     }
 
     QSqlQuery query;
-    QString sql = QString("SELECT mac FROM batteryDetailInfo WHERE groupId=%1").arg(id);
+    QString sql = QString("SELECT clientId FROM batteryDetailInfo WHERE groupId=%1").arg(id);
     bool r1 = query.exec(sql);
     qDebug()<<r1<<sql;
-    QStringList macList;
+    QVector<int> client_id_vec;
     while(query.next()){
-        macList.append(query.value(0).toString());
+        client_id_vec.append(query.value(0).toInt());
     }
 
-    QStringList::Iterator it = macList.begin();
-    while(it!=macList.end()){
-        QString sql = QString("UPDATE batteryDetailInfo SET groupId=1,zoneId=1 WHERE mac='%1'").arg(*it);
+    QVector<int>::Iterator it = client_id_vec.begin();
+    while(it!=client_id_vec.end()){
+        QString sql = QString("UPDATE batteryDetailInfo SET groupId=1,zoneId=1 WHERE clientId=%1").arg(*it);
         bool r1 = query.exec(sql);
         qDebug()<<r1<<sql;
         it++;
@@ -438,22 +446,22 @@ void DataHandler::onZoneDelete(int id)
         group_id_vec.append(query.value(0).toInt());
     }
 
-    QStringList macList;
+    QVector<int> client_id_vec;
     QVector<int>::Iterator it1 = group_id_vec.begin();
     while(it1!=group_id_vec.end()){
-        QString sql = QString("SELECT mac FROM batteryDetailInfo "
+        QString sql = QString("SELECT clientId FROM batteryDetailInfo "
                               "WHERE groupId=%1 AND zoneId=%2")
                 .arg(*it1).arg(id);
         bool r1 = query.exec(sql);
         qDebug()<<r1<<sql;
         while(query.next()){
-            macList.append(query.value(0).toString());
+            client_id_vec.append(query.value(0).toInt());
         }
         it1++;
     }
-    QStringList::Iterator it = macList.begin();
-    while(it!=macList.end()){
-        QString sql = QString("UPDATE batteryDetailInfo SET groupId=1,zoneId=1 WHERE mac='%1'").arg(*it);
+    QVector<int>::Iterator it = client_id_vec.begin();
+    while(it!=client_id_vec.end()){
+        QString sql = QString("UPDATE batteryDetailInfo SET groupId=1,zoneId=1 WHERE clientId=%1").arg(*it);
         bool r1 = query.exec(sql);
         qDebug()<<r1<<sql;
         it++;
@@ -481,8 +489,8 @@ void DataHandler::onGroupModify(int id, int zone_from, QString name_from, int zo
 {
     QSqlQuery query;
     if(zone_from!=zone_to){
-        QString sql = QString("UPDATE batteryDetailInfo SET zoneId=%1 WHERE mac IN "
-                              "(SELECT mac FROM batteryDetailInfo groupId=%2 AND zoneId=%3)")
+        QString sql = QString("UPDATE batteryDetailInfo SET zoneId=%1 WHERE clientId IN "
+                              "(SELECT clientId FROM batteryDetailInfo groupId=%2 AND zoneId=%3)")
                 .arg(zone_to).arg(id).arg(zone_from);
         bool r1 = query.exec(sql);
         qDebug()<<r1<<sql;
@@ -523,13 +531,13 @@ void DataHandler::onZoneAppend(QString name)
     qDebug()<<r1<<sql;
 }
 
-void DataHandler::onDeviceAppend(QString ip, QString mac, int address)
+void DataHandler::onDeviceAppend(int id, QString ip, QString mac, int address)
 {
     QSqlQuery query;
     QString sql=QString("INSERT INTO batteryDetailInfo "
-                        "(ip,mac,address,zoneId,groupId) "
-                        "VALUES ('%1','%2',%3,1,1)")
-            .arg(ip).arg(mac).arg(address);
+                        "(clientId,clientIp,clientMac,clientAddress,zoneId,groupId) "
+                        "VALUES (%1,'%2','%3',%4,1,1)")
+            .arg(id).arg(ip).arg(mac).arg(address);
     bool r1 = query.exec(sql);
     qDebug()<<__FUNCTION__<<r1<<sql;
 
@@ -550,6 +558,7 @@ void DataHandler::slotItemClicked(const QModelIndex &index)
     }
 
     QJsonObject obj=doc.object();
+    QString device_id = obj["id"].toString();
     QString device_ip = obj["ip"].toString();
     QString device_mac = obj["mac"].toString();
     QString device_address = obj["address"].toString();
@@ -559,19 +568,21 @@ void DataHandler::slotItemClicked(const QModelIndex &index)
     QString device_volume = obj["volume"].toString();
     QString device_zone = obj["zone"].toString();
     QString device_group = obj["group"].toString();
-    qDebug()<<device_ip<<device_mac<<device_address<<device_zone<<device_group;
+    qDebug()<<device_id<<device_ip<<device_mac<<device_address<<device_zone<<device_group;
 
+    mCurrentClient = device_id.toInt();
     mCurrentMac = device_mac;
     mCurrentAddress = device_address.toInt();
 }
 
-void DataHandler::slotAppendPowerInfo(QString data, int len)
+void DataHandler::slotAppendPowerInfo(QString data, bool valid)
 {
     QJsonDocument json_doc=QJsonDocument::fromJson(data.toLatin1());
     QJsonObject json_obj=json_doc.object();
     QJsonObject json_obj_identify = json_obj.value("identify").toObject();
     QString identify_ip = json_obj_identify.value("ip").toString();
     QString identify_mac = json_obj_identify.value("mac").toString();
+    int identify_id = json_obj_identify.value("id").toInt();//电脑编号 1-60000
     int identify_address = json_obj_identify.value("address").toInt();
     QJsonObject json_obj_property = json_obj.value("property").toObject();
     int property_rate = json_obj_property.value("rate").toInt();
@@ -583,13 +594,18 @@ void DataHandler::slotAppendPowerInfo(QString data, int len)
     int property_count = json_obj_property.value("count").toInt();
     int property_alarm = json_obj_property.value("alarm").toInt();
     int property_interval = json_obj_property.value("interval").toInt();
-    qDebug()<<__FUNCTION__<<identify_address<<identify_mac<<identify_ip<<property_rate;
+    qDebug()<<__FUNCTION__<<identify_address<<identify_id<<identify_ip<<property_rate;
+
+    if(false==valid){
+        return ;
+    }
 
     QString sql2=QString("INSERT INTO batteryPowerInfo "
-            "(ip,mac,address,rate,voltage,current,volume,"
-            "temp,direction,count,alarm,interval,time) "
-            "VALUES ('%1','%2',%3,%4,%5,%6,%7,%8,%9,%10,%11,%12,"
-            "datetime('now','localtime'))")
+                         "(clientId,clientIp,clientMac,clientAddress,rate,voltage,current,volume,"
+                         "temp,direction,count,alarm,interval,time) "
+                         "VALUES (%1,'%2','%3',%4,%5,%6,%7,%8,%9,%10,%11,%12,%13,"
+                         "datetime('now','localtime'))")
+            .arg(identify_id)
             .arg(identify_ip)
             .arg(identify_mac)
             .arg(identify_address)
@@ -606,14 +622,17 @@ void DataHandler::slotAppendPowerInfo(QString data, int len)
     bool r2=query.exec(sql2);
     qDebug()<<r2<<sql2;
 
-    if(mCurrentMac==identify_mac&&mCurrentAddress==identify_address){
+    if(mCurrentClient=identify_id){
         // todo
         // 更新仪表盘
     }
 
-    mOnlineTime[identify_mac]=QTime::currentTime();
-    if(mDeviceWithoutGroupItem.find(identify_mac)==mDeviceWithoutGroupItem.end()){
-        onDeviceAppend(identify_ip,identify_mac,identify_address);
+
+    // 显示在线掉线状态
+    mOnlineTime[identify_id]=QTime::currentTime();
+    // 检查是否是新设备
+    if(mDeviceWithoutGroupItem.find(identify_id)==mDeviceWithoutGroupItem.end()){
+        onDeviceAppend(identify_id,identify_ip,identify_mac,identify_address);
     }
 }
 
