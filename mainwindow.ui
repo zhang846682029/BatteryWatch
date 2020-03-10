@@ -135,11 +135,23 @@ QTreeView::branch:has-siblings:!adjoins-item {
    </property>
    <widget class="QMenu" name="menu">
     <property name="title">
-     <string>设置</string>
+     <string>Setting</string>
     </property>
+    <addaction name="actionZoneEditor"/>
+    <addaction name="actionGroupEditor"/>
    </widget>
    <addaction name="menu"/>
   </widget>
+  <action name="actionGroupEditor">
+   <property name="text">
+    <string>Group Editor</string>
+   </property>
+  </action>
+  <action name="actionZoneEditor">
+   <property name="text">
+    <string>Zone Editor</string>
+   </property>
+  </action>
  </widget>
  <customwidgets>
   <customwidget>

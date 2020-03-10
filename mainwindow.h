@@ -20,6 +20,8 @@ public:
 public slots:
     void slotTreeModeUpdate(void);
     void slotTreeMenu(const QPoint &pos);
+    void slotActionZoneEditortriggered(bool);
+    void slotActionGroupEditortriggered(bool);
 
 private:
     Ui::MainWindow *ui;

@@ -20,14 +20,16 @@ SOURCES += main.cpp\
     server.cpp \
     tcpclientsocket.cpp \
     datahandler.cpp \
-    dialoggroupeditor.cpp
+    dialoggroupeditor.cpp \
+    editordatahandler.cpp
 
 HEADERS  += mainwindow.h \
     batteryinfowidget.h \
     server.h \
     tcpclientsocket.h \
     datahandler.h \
-    dialoggroupeditor.h
+    dialoggroupeditor.h \
+    editordatahandler.h
 
 FORMS += \
     mainwindow.ui \

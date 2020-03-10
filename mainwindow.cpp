@@ -2,17 +2,26 @@
 #include "ui_mainwindow.h"
 #include "server.h"
 #include "datahandler.h"
+#include "dialoggroupeditor.h"
 #include <QStandardItemModel>
 #include <QHeaderView>
 #include <QJsonObject>
 #include <QJsonDocument>
 #include <QJsonParseError>
+#include <QAction>
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
+
+    connect(ui->actionZoneEditor,&QAction::triggered,\
+            this,&MainWindow::slotActionZoneEditortriggered,\
+            Qt::UniqueConnection);
+    connect(ui->actionGroupEditor,&QAction::triggered,\
+            this,&MainWindow::slotActionGroupEditortriggered,\
+            Qt::UniqueConnection);
 
     QPalette pal(this->palette());
     pal.setColor(QPalette::Background, QColor(60,60,60,200));
@@ -51,9 +60,23 @@ void MainWindow::slotTreeModeUpdate()
 void MainWindow::slotTreeMenu(const QPoint &pos)
 {
     QMenu *menu = new QMenu(ui->treeViewDevice);
-    QAction *a1=new QAction(tr("Group Editor"));
-    menu->addAction(a1);
-    QAction *a2=new QAction(tr("Device Editor"));
-    menu->addAction(a2);
+    menu->addAction(ui->actionZoneEditor);
+    menu->addAction(ui->actionGroupEditor);
     menu->exec(ui->treeViewDevice->mapToGlobal(pos));
+}
+
+void MainWindow::slotActionZoneEditortriggered(bool)
+{
+    DialogGroupEditor *dlg_editor=new DialogGroupEditor(0,this);
+    dlg_editor->exec();
+    delete dlg_editor;
+    mDataHandler->getDeviceTree();
+}
+
+void MainWindow::slotActionGroupEditortriggered(bool)
+{
+    DialogGroupEditor *dlg_editor=new DialogGroupEditor(1,this);
+    dlg_editor->exec();
+    delete dlg_editor;
+    mDataHandler->getDeviceTree();
 }
