@@ -19,6 +19,7 @@
 DataHandler::DataHandler(QObject *parent) : QObject(parent)
 {
     mModelTree = new QStandardItemModel(this);
+    mModelDetailInfo = new QStandardItemModel(this);
 
     QSqlDatabase dbconn = QSqlDatabase::addDatabase("SQLITECIPHER");
     // Set database name, which is the database file name in SQLite
@@ -143,9 +144,8 @@ void DataHandler::creatTableBatteryDetailInfo()
                           "[clientAddress] INTEGER, "
                           "[manufacturer] TEXT, "
                           "[serialNumber] TEXT, "
-                          "[installationDate] TIME, "
+                          "[installationDate] TEXT, "
                           "[batteryVolume] FLOAT, "
-                          "[zoneId] INTEGER DEFAULT 1 REFERENCES [zoneInfo]([id]) ON DELETE SET DEFAULT, "
                           "[groupId] INTEGER DEFAULT 1 REFERENCES [groupInfo]([id]) ON DELETE SET DEFAULT);");
     QSqlQuery query;
     query.exec(sql);
@@ -258,10 +258,10 @@ void DataHandler::getDeviceTree()
             QString device_install=query.value(6).toDateTime().toString("yyyy-MM-dd hh:mm:ss");
 //            float device_volume=query.value(1).toFloat();
             QString device_volume=QString::number(query.value(7).toFloat());
-            int zone_id = query.value(8).toInt();
-            QStandardItem *item_z = map_zone_item.value(zone_id,NULL);
-            QString device_zone = item_z!=NULL?item_z->data().toString():QString();
-            int group_id = query.value(9).toInt();
+//            int zone_id = query.value(8).toInt();
+//            QStandardItem *item_z = map_zone_item.value(zone_id,NULL);
+//            QString device_zone = item_z!=NULL?item_z->data().toString():QString();
+            int group_id = query.value(8).toInt();
             QStandardItem *item_g = map_group_item.value(group_id,NULL);
             QString device_group = item_g!=NULL?item_g->data().toString():QString();
             QJsonObject device_info_map;
@@ -273,7 +273,7 @@ void DataHandler::getDeviceTree()
             device_info_map["sn"]=device_sn;
             device_info_map["install"]=device_install;
             device_info_map["volume"]=device_volume;
-            device_info_map["zone"]=device_zone;
+//            device_info_map["zone"]=device_zone;
             device_info_map["group"]=device_group;
             QJsonDocument doc(device_info_map);
             QByteArray array=doc.toJson();
@@ -305,10 +305,10 @@ void DataHandler::getDeviceTree()
             QString device_install=query.value(6).toDateTime().toString("yyyy-MM-dd hh:mm:ss");
 //            float device_volume=query.value(1).toFloat();
             QString device_volume=QString::number(query.value(7).toFloat());
-            int zone_id = query.value(8).toInt();
-            QStandardItem *item_z = map_zone_item.value(zone_id,NULL);
-            QString device_zone = item_z!=NULL?item_z->data().toString():QString();
-            int group_id = query.value(9).toInt();
+//            int zone_id = query.value(8).toInt();
+//            QStandardItem *item_z = map_zone_item.value(zone_id,NULL);
+//            QString device_zone = item_z!=NULL?item_z->data().toString():QString();
+            int group_id = query.value(8).toInt();
             QStandardItem *item_g = map_group_item.value(group_id,NULL);
             QString device_group = item_g!=NULL?item_g->data().toString():QString();
             QJsonObject device_info_map;
@@ -320,7 +320,7 @@ void DataHandler::getDeviceTree()
             device_info_map["sn"]=device_sn;
             device_info_map["install"]=device_install;
             device_info_map["volume"]=device_volume;
-            device_info_map["zone"]=device_zone;
+//            device_info_map["zone"]=device_zone;
             device_info_map["group"]=device_group;
             QJsonDocument doc(device_info_map);
             QByteArray array=doc.toJson();
@@ -413,7 +413,7 @@ void DataHandler::onGroupDelete(int id)
 
     QVector<int>::Iterator it = client_id_vec.begin();
     while(it!=client_id_vec.end()){
-        QString sql = QString("UPDATE batteryDetailInfo SET groupId=1,zoneId=1 WHERE clientId=%1").arg(*it);
+        QString sql = QString("UPDATE batteryDetailInfo SET groupId=1 WHERE clientId=%1").arg(*it);
         bool r1 = query.exec(sql);
         qDebug()<<r1<<sql;
         it++;
@@ -450,8 +450,8 @@ void DataHandler::onZoneDelete(int id)
     QVector<int>::Iterator it1 = group_id_vec.begin();
     while(it1!=group_id_vec.end()){
         QString sql = QString("SELECT clientId FROM batteryDetailInfo "
-                              "WHERE groupId=%1 AND zoneId=%2")
-                .arg(*it1).arg(id);
+                              "WHERE groupId=%1")
+                .arg(*it1);
         bool r1 = query.exec(sql);
         qDebug()<<r1<<sql;
         while(query.next()){
@@ -461,7 +461,7 @@ void DataHandler::onZoneDelete(int id)
     }
     QVector<int>::Iterator it = client_id_vec.begin();
     while(it!=client_id_vec.end()){
-        QString sql = QString("UPDATE batteryDetailInfo SET groupId=1,zoneId=1 WHERE clientId=%1").arg(*it);
+        QString sql = QString("UPDATE batteryDetailInfo SET groupId=1 WHERE clientId=%1").arg(*it);
         bool r1 = query.exec(sql);
         qDebug()<<r1<<sql;
         it++;
@@ -488,13 +488,13 @@ void DataHandler::onZoneDelete(int id)
 void DataHandler::onGroupModify(int id, int zone_from, QString name_from, int zone_to, QString name_to)
 {
     QSqlQuery query;
-    if(zone_from!=zone_to){
-        QString sql = QString("UPDATE batteryDetailInfo SET zoneId=%1 WHERE clientId IN "
-                              "(SELECT clientId FROM batteryDetailInfo groupId=%2 AND zoneId=%3)")
-                .arg(zone_to).arg(id).arg(zone_from);
-        bool r1 = query.exec(sql);
-        qDebug()<<r1<<sql;
-    }
+//    if(zone_from!=zone_to){
+//        QString sql = QString("UPDATE batteryDetailInfo SET zoneId=%1 WHERE clientId IN "
+//                              "(SELECT clientId FROM batteryDetailInfo groupId=%2 AND zoneId=%3)")
+//                .arg(zone_to).arg(id).arg(zone_from);
+//        bool r1 = query.exec(sql);
+//        qDebug()<<r1<<sql;
+//    }
 
     QString sql = QString("UPDATE groupInfo SET name='%1',zone=%2 WHERE id = %3")
             .arg(name_to).arg(zone_to).arg(id);
@@ -535,13 +535,71 @@ void DataHandler::onDeviceAppend(int id, QString ip, QString mac, int address)
 {
     QSqlQuery query;
     QString sql=QString("INSERT INTO batteryDetailInfo "
-                        "(clientId,clientIp,clientMac,clientAddress,zoneId,groupId) "
-                        "VALUES (%1,'%2','%3',%4,1,1)")
+                        "(clientId,clientIp,clientMac,clientAddress,groupId) "
+                        "VALUES (%1,'%2','%3',%4,1)")
             .arg(id).arg(ip).arg(mac).arg(address);
     bool r1 = query.exec(sql);
     qDebug()<<__FUNCTION__<<r1<<sql;
 
     getDeviceTree();
+}
+
+void DataHandler::onDeviceSelected(QMap<QString, QString> info)
+{
+    mModelDetailInfo->clear();
+    QMapIterator<QString, QString> i(info);
+    int row_index=0;
+    while (i.hasNext()) {
+        i.next();
+        QStandardItem *item_value = new QStandardItem(i.value());
+        item_value->setEditable(false);
+        QStandardItem *item_key = NULL;
+        if(i.key()==QString("5clientId")) {
+            item_key = new QStandardItem(tr("clientId"));
+        }
+        if(i.key()==QString("6clientAddress")) {
+            item_key = new QStandardItem(tr("clientAddress"));
+        }
+        if(i.key()==QString("4manufacturer")) {
+            item_key = new QStandardItem(tr("manufacturer"));
+        }
+        if(i.key()==QString("3serialNumber")) {
+            item_key = new QStandardItem(tr("serialNumber"));
+        }
+        if(i.key()==QString("2installationDate")) {
+            item_key = new QStandardItem(tr("installationDate"));
+        }
+        if(i.key()==QString("1batteryVolume")) {
+            item_key = new QStandardItem(tr("batteryVolume"));
+        }
+        if(i.key()==QString("7zone")) item_key = new QStandardItem(tr("zone"));
+        if(i.key()==QString("8group")) item_key = new QStandardItem(tr("group"));
+        if(item_key == NULL) continue;
+        item_key->setEditable(false);
+        mModelDetailInfo->setItem(row_index, 0, item_key);
+        mModelDetailInfo->setItem(row_index, 1, item_value);
+        row_index++;
+    }
+}
+
+void DataHandler::updateDeviceDetail()
+{
+    QSqlQuery query;
+    QString sql = QString("SELECT * FROM batteryDetailInfo WHERE clientId=%1").arg(mCurrentClient);
+    bool r1 = query.exec(sql);
+    qDebug()<<r1<<sql;
+    QMap<QString,QString> detail_info;
+    while(query.next()){
+        detail_info["5clientId"]=QString::number(query.value(0).toInt());
+        //    detail_info["6clientAddress"]=device_address;
+        detail_info["4manufacturer"]=query.value(4).toString();
+        detail_info["3serialNumber"]=query.value(5).toString();
+        detail_info["2installationDate"]=query.value(6).toString();
+        detail_info["1batteryVolume"]=QString::number(query.value(7).toFloat());
+        //    detail_info["7zone"]=device_zone;
+        detail_info["8group"]=QString::number(query.value(8).toInt());
+    }
+    onDeviceSelected(detail_info);
 }
 
 void DataHandler::slotItemClicked(const QModelIndex &index)
@@ -566,13 +624,24 @@ void DataHandler::slotItemClicked(const QModelIndex &index)
     QString device_sn = obj["sn"].toString();
     QString device_install = obj["install"].toString();
     QString device_volume = obj["volume"].toString();
-    QString device_zone = obj["zone"].toString();
+//    QString device_zone = obj["zone"].toString();
     QString device_group = obj["group"].toString();
-    qDebug()<<device_id<<device_ip<<device_mac<<device_address<<device_zone<<device_group;
+    qDebug()<<device_id<<device_ip<<device_mac<<device_address<<device_group;
 
     mCurrentClient = device_id.toInt();
     mCurrentMac = device_mac;
     mCurrentAddress = device_address.toInt();
+
+    QMap<QString,QString> detail_info;
+    detail_info["5clientId"]=device_id;
+//    detail_info["6clientAddress"]=device_address;
+    detail_info["4manufacturer"]=device_manufacturer;
+    detail_info["3serialNumber"]=device_sn;
+    detail_info["2installationDate"]=device_install;
+    detail_info["1batteryVolume"]=device_volume;
+//    detail_info["7zone"]=device_zone;
+    detail_info["8group"]=device_group;
+    onDeviceSelected(detail_info);
 }
 
 void DataHandler::slotAppendPowerInfo(QString data, bool valid)

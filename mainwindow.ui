@@ -102,6 +102,18 @@ QTreeView::branch:has-siblings:!adjoins-item {
           <height>180</height>
          </size>
         </property>
+        <attribute name="horizontalHeaderVisible">
+         <bool>false</bool>
+        </attribute>
+        <attribute name="horizontalHeaderCascadingSectionResizes">
+         <bool>false</bool>
+        </attribute>
+        <attribute name="horizontalHeaderStretchLastSection">
+         <bool>false</bool>
+        </attribute>
+        <attribute name="verticalHeaderVisible">
+         <bool>false</bool>
+        </attribute>
        </widget>
       </item>
       <item>
@@ -139,6 +151,7 @@ QTreeView::branch:has-siblings:!adjoins-item {
     </property>
     <addaction name="actionZoneEditor"/>
     <addaction name="actionGroupEditor"/>
+    <addaction name="actionDeviceEditor"/>
    </widget>
    <addaction name="menu"/>
   </widget>
@@ -150,6 +163,14 @@ QTreeView::branch:has-siblings:!adjoins-item {
   <action name="actionZoneEditor">
    <property name="text">
     <string>Zone Editor</string>
+   </property>
+  </action>
+  <action name="actionDeviceEditor">
+   <property name="text">
+    <string>Device Editor</string>
+   </property>
+   <property name="toolTip">
+    <string>Device Editor</string>
    </property>
   </action>
  </widget>

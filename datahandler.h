@@ -14,8 +14,8 @@ class DataHandler : public QObject
 public:
     explicit DataHandler(QObject *parent = 0);
     ~DataHandler();
-    inline QStandardItemModel *getDeviceTreeModel(){return mModelTree;}
-
+    inline QStandardItemModel *getModelDeviceTree(){return mModelTree;}
+    inline QStandardItemModel *getModelDeviceInfo(){return mModelDetailInfo;}
 
     void creatTablePowerInfo(void); // 电池电量信息
     void creatTableWarningInfo(void); // 报警信息
@@ -39,6 +39,9 @@ public:
     void onZoneAppend(QString name);
     void onDeviceAppend(int id, QString ip, QString mac, int address);
 
+    void onDeviceSelected(QMap<QString,QString> info);
+    void updateDeviceDetail(void);
+
 signals:
     void sigTreeModelUpdate(void);
 
@@ -60,6 +63,8 @@ private:
                                      // 超过3分钟没有数据就显示为离线
                                      // 超过半小时没有数据就记录一次报警信息
     QMap<int,QStandardItem *> mDeviceWithoutGroupItem;
+
+    QStandardItemModel *mModelDetailInfo;
 };
 
 #endif // DATAHANDLER_H

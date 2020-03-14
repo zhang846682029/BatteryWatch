@@ -3,6 +3,9 @@
 #include <QStandardItemModel>
 #include <QAbstractItemModel>
 #include <QSqlQuery>
+#include <QDateTime>
+#include <QJsonObject>
+#include <QJsonDocument>
 #include <QDebug>
 
 EditorDataHandler::EditorDataHandler(QObject *parent) : QObject(parent)
@@ -325,14 +328,71 @@ void EditorDataHandler::slotModelDeviceOutItemClicked(const QModelIndex &index)
     qDebug()<<__FUNCTION__;
 }
 
+void EditorDataHandler::slotDeviceDetailSelected(QString identify)
+{
+    int device_id=identify.toInt();
+
+    QSqlQuery query;
+    QString sql = QString("SELECT * FROM batteryDetailInfo WHERE clientId=%1").arg(device_id);
+    bool r1 = query.exec(sql);
+    qDebug()<<r1<<sql;
+    while(query.next()){
+        QString manufacturer=query.value(4).toString();
+        QString device_sn=query.value(5).toString();
+        QString install_time_string=query.value(6).toString();
+        QString volume_string=QString::number(query.value(7).toFloat());
+
+        QJsonObject device_info_map;
+        device_info_map["manufacturer"]=manufacturer;
+        device_info_map["serialNumber"]=device_sn;
+        device_info_map["installationDate"]=install_time_string;
+        device_info_map["batteryVolume"]=volume_string;
+        QJsonDocument doc(device_info_map);
+        QByteArray array=doc.toJson();
+        emit sigDetailSelected(array);
+    }
+}
+
+void EditorDataHandler::slotDetailModified(QByteArray array)
+{
+    QJsonParseError errorLoad;
+    QJsonDocument doc = QJsonDocument::fromJson(array,&errorLoad);
+    if(QJsonParseError::NoError!=errorLoad.error){
+        return;
+    }
+
+    QJsonObject obj=doc.object();
+    QString device_manufacturer = obj["manufacturer"].toString();
+    QString device_sn = obj["serialNumber"].toString();
+    QString device_install_string = obj["installationDate"].toString();
+    if(QString("1970-01-01 08:00:00")==device_install_string){
+        device_install_string=QString();
+    }
+    QString device_volume_string = obj["batteryVolume"].toString();
+    float device_volume = device_volume_string.toFloat();
+    QString device_id_string = obj["clientId"].toString();
+    float device_id = device_id_string.toInt();
+
+    QString sql = QString("UPDATE batteryDetailInfo SET manufacturer='%1',"
+                          "serialNumber='%2',installationDate='%3',batteryVolume=%4 "
+                          "WHERE clientId=%5;")
+            .arg(device_manufacturer).arg(device_sn).arg(device_install_string)
+            .arg(device_volume).arg(device_id);
+    QSqlQuery query;
+    bool r1=query.exec(sql);
+    qDebug()<<r1<<sql;
+}
+
 void EditorDataHandler::slotTabChanged(int tab)
 {
     if(tab==0){
         initModelZone();
         initGroupOut();
-    } else {
+    } else if(tab==1){
         initModelGroup();
         initDeviceOut();
+    } else if(tab==2){
+        initDeviceList();
     }
 }
 
@@ -359,7 +419,7 @@ void EditorDataHandler::onGroupDelete(void)
 
     QVector<int>::Iterator it = client_id_vec.begin();
     while(it!=client_id_vec.end()){
-        QString sql = QString("UPDATE batteryDetailInfo SET groupId=1,zoneId=1 WHERE clientId=%1").arg(*it);
+        QString sql = QString("UPDATE batteryDetailInfo SET groupId=1 WHERE clientId=%1").arg(*it);
         bool r1 = query.exec(sql);
         qDebug()<<r1<<sql;
         it++;
@@ -397,8 +457,8 @@ void EditorDataHandler::onZoneDelete(void)
     QVector<int>::Iterator it1 = group_id_vec.begin();
     while(it1!=group_id_vec.end()){
         QString sql = QString("SELECT clientId FROM batteryDetailInfo "
-                              "WHERE groupId=%1 AND zoneId=%2")
-                .arg(*it1).arg(id);
+                              "WHERE groupId=%1")
+                .arg(*it1);
         bool r1 = query.exec(sql);
         qDebug()<<r1<<sql;
         while(query.next()){
@@ -408,7 +468,7 @@ void EditorDataHandler::onZoneDelete(void)
     }
     QVector<int>::Iterator it = client_id_vec.begin();
     while(it!=client_id_vec.end()){
-        QString sql = QString("UPDATE batteryDetailInfo SET groupId=1,zoneId=1 WHERE clientId=%1").arg(*it);
+        QString sql = QString("UPDATE batteryDetailInfo SET groupId=1 WHERE clientId=%1").arg(*it);
         bool r1 = query.exec(sql);
         qDebug()<<r1<<sql;
         it++;
@@ -474,6 +534,19 @@ void EditorDataHandler::onGroupAppend(QString name)
     initModelGroup();
 }
 
+void EditorDataHandler::initDeviceList()
+{
+    listDeviceDetail.clear();
+
+    QSqlQuery query;
+    QString sql = QString("SELECT * FROM batteryDetailInfo ");
+    bool r1 = query.exec(sql);
+    qDebug()<<r1<<sql;
+    while(query.next()){
+        listDeviceDetail<<QString::number(query.value(0).toInt());
+    }
+}
+
 void EditorDataHandler::onZoneAppend(QString name)
 {
     QSqlQuery query;
@@ -488,8 +561,8 @@ void EditorDataHandler::onDeviceAppend(int id, QString ip, QString mac, int addr
 {
     QSqlQuery query;
     QString sql=QString("INSERT INTO batteryDetailInfo "
-                        "(clientId,clientIp,clientMac,clientAddress,zoneId,groupId) "
-                        "VALUES (%1,'%2','%3',%4,1,1)")
+                        "(clientId,clientIp,clientMac,clientAddress,groupId) "
+                        "VALUES (%1,'%2','%3',%4,1)")
             .arg(id).arg(ip).arg(mac).arg(address);
     bool r1 = query.exec(sql);
     qDebug()<<__FUNCTION__<<r1<<sql;

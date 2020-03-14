@@ -25,6 +25,12 @@ public slots:
     void on_btnGroupAdd_clicked(bool);
     void on_btnGroupModify_clicked(bool);
     void on_btnGroupDelete_clicked(bool);
+    void on_btnDetailInfo_clicked(bool);
+
+    void slotDetailSelected(QByteArray info);
+
+signals:
+    void sigDetailModified(QByteArray info);
 
 private:
     Ui::DialogGroupEditor *ui;

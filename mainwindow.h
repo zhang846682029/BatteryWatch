@@ -22,6 +22,7 @@ public slots:
     void slotTreeMenu(const QPoint &pos);
     void slotActionZoneEditortriggered(bool);
     void slotActionGroupEditortriggered(bool);
+    void slotActionDeviceEditortriggered(bool);
 
 private:
     Ui::MainWindow *ui;

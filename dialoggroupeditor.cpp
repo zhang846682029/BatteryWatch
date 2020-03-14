@@ -2,6 +2,10 @@
 #include "ui_dialoggroupeditor.h"
 #include "editordatahandler.h"
 #include <QPushButton>
+#include <QJsonParseError>
+#include <QJsonDocument>
+#include <QJsonObject>
+#include <QDateEdit>
 #include <QDebug>
 
 DialogGroupEditor::DialogGroupEditor(int tab, QWidget *parent) :
@@ -42,8 +46,19 @@ DialogGroupEditor::DialogGroupEditor(int tab, QWidget *parent) :
     connect(ui->btnDeviceOut,&QPushButton::clicked,\
             dataHandler,&EditorDataHandler::onDeviceOut);
 
+    //ui->combxDevice
+    connect(ui->combxDevice,&QComboBox::currentTextChanged,\
+            dataHandler,&EditorDataHandler::slotDeviceDetailSelected);
+    connect(dataHandler,&EditorDataHandler::sigDetailSelected,\
+            this,&DialogGroupEditor::slotDetailSelected);
+    connect(this,&DialogGroupEditor::sigDetailModified,\
+            dataHandler,&EditorDataHandler::slotDetailModified);
+
     ui->tabWidget->setCurrentIndex(tab);
     dataHandler->slotTabChanged(tab);
+    if(tab==2){
+        ui->combxDevice->addItems(dataHandler->getDeviceList());
+    }
 }
 
 DialogGroupEditor::~DialogGroupEditor()
@@ -81,4 +96,49 @@ void DialogGroupEditor::on_btnGroupModify_clicked(bool)
 void DialogGroupEditor::on_btnGroupDelete_clicked(bool)
 {
     dataHandler->onGroupDelete();
+}
+
+void DialogGroupEditor::on_btnDetailInfo_clicked(bool)
+{
+    QJsonObject device_info_map;
+    device_info_map["clientId"]=ui->combxDevice->currentText();
+    device_info_map["manufacturer"]=ui->editManufacturer->text();
+    device_info_map["serialNumber"]=ui->editSerialNumber->text();
+    device_info_map["installationDate"]=ui->dateTimeEdit->dateTime()\
+            .toString("yyyy-MM-dd hh:mm:ss");
+    device_info_map["batteryVolume"]=ui->editBatteryVolume->text();
+    QJsonDocument doc(device_info_map);
+    QByteArray array=doc.toJson();
+    emit sigDetailModified(array);
+}
+
+void DialogGroupEditor::slotDetailSelected(QByteArray array)
+{
+    QJsonParseError errorLoad;
+    QJsonDocument doc = QJsonDocument::fromJson(array,&errorLoad);
+    if(QJsonParseError::NoError!=errorLoad.error){
+        return;
+    }
+
+    QJsonObject obj=doc.object();
+    QString device_manufacturer = obj["manufacturer"].toString();
+    ui->editManufacturer->setText(device_manufacturer);
+
+    QString device_sn = obj["serialNumber"].toString();
+    ui->editSerialNumber->setText(device_sn);
+
+    QString device_install_string = obj["installationDate"].toString();
+    if(device_install_string.isEmpty()){
+        QDateTime install_time=QDateTime::fromString(QString("1970-01-01 08:00:00"),\
+                                                     QString("yyyy-MM-dd hh:mm:ss"));
+        ui->dateTimeEdit->setDateTime(install_time);
+    } else {
+        QDateTime install_time=QDateTime::fromString(device_install_string,\
+                                                     QString("yyyy-MM-dd hh:mm:ss"));
+        ui->dateTimeEdit->setDateTime(install_time);
+    }
+
+    QString device_volume_string = obj["batteryVolume"].toString();
+    ui->editBatteryVolume->setText(device_volume_string);
+
 }

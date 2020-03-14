@@ -22,6 +22,9 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(ui->actionGroupEditor,&QAction::triggered,\
             this,&MainWindow::slotActionGroupEditortriggered,\
             Qt::UniqueConnection);
+    connect(ui->actionDeviceEditor,&QAction::triggered,\
+            this,&MainWindow::slotActionDeviceEditortriggered,\
+            Qt::UniqueConnection);
 
     QPalette pal(this->palette());
     pal.setColor(QPalette::Background, QColor(60,60,60,200));
@@ -35,7 +38,7 @@ MainWindow::MainWindow(QWidget *parent) :
             mDataHandler, &DataHandler::slotAppendPowerInfo);
 
     // 设备树
-    ui->treeViewDevice->setModel(mDataHandler->getDeviceTreeModel());
+    ui->treeViewDevice->setModel(mDataHandler->getModelDeviceTree());
     ui->treeViewDevice->expandAll();
     // 右键菜单
     ui->treeViewDevice->setContextMenuPolicy(Qt::CustomContextMenu);
@@ -45,6 +48,11 @@ MainWindow::MainWindow(QWidget *parent) :
             mDataHandler,&DataHandler::slotItemClicked);
     connect(mDataHandler,&DataHandler::sigTreeModelUpdate,\
             this,&MainWindow::slotTreeModeUpdate);
+
+    ui->tableViewDeviceDetail->setModel(mDataHandler->getModelDeviceInfo());
+    ui->tableViewDeviceDetail->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
+    ui->tableViewDeviceDetail->setSelectionBehavior(QAbstractItemView::SelectRows);
+    ui->tableViewDeviceDetail->setSelectionMode(QAbstractItemView::SingleSelection);
 }
 
 MainWindow::~MainWindow()
@@ -62,6 +70,7 @@ void MainWindow::slotTreeMenu(const QPoint &pos)
     QMenu *menu = new QMenu(ui->treeViewDevice);
     menu->addAction(ui->actionZoneEditor);
     menu->addAction(ui->actionGroupEditor);
+    menu->addAction(ui->actionDeviceEditor);
     menu->exec(ui->treeViewDevice->mapToGlobal(pos));
 }
 
@@ -79,4 +88,12 @@ void MainWindow::slotActionGroupEditortriggered(bool)
     dlg_editor->exec();
     delete dlg_editor;
     mDataHandler->getDeviceTree();
+}
+
+void MainWindow::slotActionDeviceEditortriggered(bool)
+{
+    DialogGroupEditor *dlg_editor=new DialogGroupEditor(2,this);
+    dlg_editor->exec();
+    delete dlg_editor;
+    mDataHandler->updateDeviceDetail();
 }

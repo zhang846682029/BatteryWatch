@@ -20,6 +20,9 @@ public:
     QAbstractItemModel *getModelDeviceIn(void);
     QAbstractItemModel *getModelDeviceOut(void);
 
+    inline QStringList getDeviceList(void){return listDeviceDetail;}
+
+    // tab0
     void initModelZone(void);
     void initGroupOut(void);
     void getGroupsInOut(int zone_id);
@@ -29,6 +32,7 @@ public:
     void onZoneModify(QString name_from, QString name_to);
     void onZoneAppend(QString name);
 
+    // tab1
     void initModelGroup(void);
     void initDeviceOut(void);
     void getDevicesInOut(int group_id);
@@ -38,9 +42,13 @@ public:
     void onGroupModify(QString name_from, QString name_to);
     void onGroupAppend(QString name);
 
+    // tab2
+    void initDeviceList(void);
+
     void onDeviceAppend(int id, QString ip, QString mac, int address);
 
 signals:
+    void sigDetailSelected(QByteArray info);
 
 public slots:
     void slotModelZoneItemClicked(const QModelIndex &index);
@@ -50,6 +58,9 @@ public slots:
     void slotModelGroupItemClicked(const QModelIndex &index);
     void slotModelDeviceInItemClicked(const QModelIndex &index);
     void slotModelDeviceOutItemClicked(const QModelIndex &index);
+
+    void slotDeviceDetailSelected(QString identify);
+    void slotDetailModified(QByteArray info);
 
     void slotTabChanged(int);
 
@@ -67,6 +78,8 @@ private:
     QStandardItem *currentGroupItem;
     QStandardItem *currentDeviceInItem;
     QStandardItem *currentDeviceOutItem;
+
+    QStringList listDeviceDetail;
 };
 
 #endif // EDITORDATAHANDLER_H
