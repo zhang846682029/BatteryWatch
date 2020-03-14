@@ -36,6 +36,8 @@ MainWindow::MainWindow(QWidget *parent) :
     mDataHandler = new DataHandler(this);
     connect(mTcpServer, &Server::sigPowerInfo, \
             mDataHandler, &DataHandler::slotAppendPowerInfo);
+    connect(mDataHandler,&DataHandler::sigUpdatePowerInfo,\
+            ui->widget,&BatteryInfoWidget::slotUpdatePowerInfo);
 
     // 设备树
     ui->treeViewDevice->setModel(mDataHandler->getModelDeviceTree());

@@ -602,6 +602,42 @@ void DataHandler::updateDeviceDetail()
     onDeviceSelected(detail_info);
 }
 
+void DataHandler::getLastPowerInfo(int client)
+{
+    QString sql=QString("SELECT * FROM batteryPowerInfo "
+                        "WHERE time > datetime('now','localtime','-1 day') "
+                        "AND clientId=%1 "
+                        "ORDER BY time DESC").arg(client);
+    QSqlQuery query;
+    bool r1=query.exec(sql);
+    qDebug()<<r1<<sql;
+    while(query.next()){
+        int id = query.value(1).toInt();
+        int rate = query.value(5).toInt();
+        int voltage = query.value(6).toInt();
+        int current = query.value(7).toInt();
+        int volume = query.value(8).toInt();
+        int temp = query.value(9).toInt();
+        int direction = query.value(10).toInt();
+        int count = query.value(11).toInt();
+        int alarm = query.value(12).toInt();
+
+        QMap<QString,int> info;
+        info["clientId"]=id;
+        info["rate"]=rate;
+        info["voltage"]=voltage;
+        info["current"]=current;
+        info["volume"]=volume;
+        info["temp"]=temp;
+        info["direction"]=direction;
+        info["count"]=count;
+        info["alarm"]=alarm;
+        emit sigUpdatePowerInfo(info);
+
+        break;
+    }
+}
+
 void DataHandler::slotItemClicked(const QModelIndex &index)
 {
     QStandardItemModel* model=(QStandardItemModel*)index.model();
@@ -631,6 +667,7 @@ void DataHandler::slotItemClicked(const QModelIndex &index)
     mCurrentClient = device_id.toInt();
     mCurrentMac = device_mac;
     mCurrentAddress = device_address.toInt();
+    getLastPowerInfo(mCurrentClient);
 
     QMap<QString,QString> detail_info;
     detail_info["5clientId"]=device_id;
@@ -691,9 +728,20 @@ void DataHandler::slotAppendPowerInfo(QString data, bool valid)
     bool r2=query.exec(sql2);
     qDebug()<<r2<<sql2;
 
-    if(mCurrentClient=identify_id){
+    if(mCurrentClient==identify_id){
         // todo
         // 更新仪表盘
+        QMap<QString,int> info;
+        info["clientId"]=identify_id;
+        info["rate"]=property_rate;
+        info["voltage"]=property_voltage;
+        info["current"]=property_current;
+        info["volume"]=property_volume;
+        info["temp"]=property_temp;
+        info["direction"]=property_direction;
+        info["count"]=property_count;
+        info["alarm"]=property_alarm;
+        emit sigUpdatePowerInfo(info);
     }
 
 

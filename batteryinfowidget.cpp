@@ -8,6 +8,16 @@ const double MAXVOLTAGE = 50.0;
 
 BatteryInfoWidget::BatteryInfoWidget(QWidget *parent) : QWidget(parent)
 {
+    mDeviceId=0;
+    mDeviceRate=0;
+    mDeviceVoltage=0.0;
+    mDeviceCurrent=0.0;
+    mDeviceVolume=0.0;
+    mDeviceTemp=0.0;
+    mDeviceDirection=2;
+    mDeviceCount=0;
+    mDeviceAlarm=0;
+
     update();
 }
 
@@ -22,9 +32,12 @@ void BatteryInfoWidget::draw(QPainter *painter)
 
     painter->drawLine(0,440,640,440);
     const QRect rectangle1 = QRect(0, 440, 640, 40);
+    QStringList power_status;
+    power_status<<tr("Discharge")<<tr("Charge")<<tr("Idle");
     painter->drawText(rectangle1, Qt::AlignCenter, \
                       tr("ADDRESS: %1    MAC: %2    STATUS: %3")
-                      .arg(1).arg("41:50:F0:55:47:8E").arg("discharge"));
+                      .arg(mDeviceId,3,10,QChar('0')).arg("41:50:F0:55:47:8E")
+                      .arg(power_status.at(mDeviceDirection)));
 
     // 电池容量百分比
     painter->translate(110,290);
@@ -57,7 +70,7 @@ void BatteryInfoWidget::draw(QPainter *painter)
           QPointF(2.0, 15.0),
       };
     painter->save();
-    double powerPercent = 177.5;
+    double powerPercent = mDeviceRate;
     powerPercent = qBound(0.0,powerPercent,100.0);
     painter->setBrush(Qt::red);
     painter->setPen(Qt::red);
@@ -90,7 +103,7 @@ void BatteryInfoWidget::draw(QPainter *painter)
           QPointF(2.0, 7.0),
       };
     painter->save();
-    double powerLeft = 35.0;
+    double powerLeft = mDeviceVolume;
     powerLeft = qBound(0.0,powerLeft,MAXVOLUME);
     painter->setBrush(Qt::red);
     painter->setPen(Qt::red);
@@ -139,7 +152,7 @@ void BatteryInfoWidget::draw(QPainter *painter)
           QPointF(2.0, 7.0),
       };
     painter->save();
-    double voltageLeft = 45.0;
+    double voltageLeft = mDeviceVoltage;
     voltageLeft = qBound(0.0,voltageLeft,MAXVOLTAGE);
     painter->setBrush(Qt::red);
     painter->setPen(Qt::red);
@@ -196,7 +209,7 @@ void BatteryInfoWidget::draw(QPainter *painter)
           QPointF(2.0, 15.0),
       };
     painter->save();
-    double temperature = 31.5;
+    double temperature = mDeviceTemp;
     temperature = qBound(-50.0,temperature,100.0);
     painter->setBrush(Qt::red);
     painter->setPen(Qt::red);
@@ -217,8 +230,8 @@ void BatteryInfoWidget::draw(QPainter *painter)
 //    painter->setBrush(gradent4);
 //    painter->setPen(Qt::NoPen);
 //    painter->drawRect(240,260,160,120);
-    double current = 13.20;
-    double cycleCount = 1.0;
+    double current = mDeviceCurrent;
+    double cycleCount = mDeviceCount;
     painter->translate(240,240);
     painter->drawText(0,0,160,20,Qt::AlignCenter,tr("Percent %1 \%").arg(powerPercent));
     painter->drawText(0,20,160,20,Qt::AlignCenter,tr("Voltage %1 V").arg(voltageLeft));
@@ -233,6 +246,26 @@ void BatteryInfoWidget::draw(QPainter *painter)
     painter->drawLine(10,100,150,100);
     painter->drawLine(10,120,150,120);
     painter->translate(-240,-240);
+}
+
+void BatteryInfoWidget::slotUpdatePowerInfo(QMap<QString, int> &info)
+{
+    mDeviceId=info["clientId"];
+    mDeviceRate=info["rate"];
+    int mDeviceVoltage_tt=info["voltage"];
+    int mDeviceCurrent_tt=info["current"];
+    int mDeviceVolume_tt=info["volume"];
+    int mDeviceTemp_tt=info["temp"];
+    mDeviceDirection=info["direction"];
+    mDeviceCount=info["count"];
+    mDeviceAlarm=info["alarm"];
+
+    mDeviceVoltage=mDeviceVoltage_tt;mDeviceVoltage=mDeviceVoltage/100.0;
+    mDeviceCurrent=mDeviceCurrent_tt;mDeviceCurrent=mDeviceCurrent/100.0;
+    mDeviceVolume=mDeviceVolume_tt;mDeviceVolume=mDeviceVolume/10.0;
+    mDeviceTemp=mDeviceTemp_tt;mDeviceTemp=mDeviceTemp/10.0;
+
+    update();
 }
 
 void BatteryInfoWidget::paintEvent(QPaintEvent *event)

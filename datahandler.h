@@ -42,12 +42,32 @@ public:
     void onDeviceSelected(QMap<QString,QString> info);
     void updateDeviceDetail(void);
 
+    void getLastPowerInfo(int client);
+
 signals:
     void sigTreeModelUpdate(void);
 
+    /**
+     * @brief 更新仪表盘数据
+     *          1.选择设备时 显示数据库里面最新的一个数据
+     *          2.网络上收到这个设备的数据时  更新界面
+     * @param info
+     */
+    void sigUpdatePowerInfo(QMap<QString,int> &info);
+
 public slots:
 
+    /**
+     * @brief 在设备树中选择设备
+     * @param index
+     */
     void slotItemClicked(const QModelIndex &index);
+
+    /**
+     * @brief 收到网络数据
+     * @param data
+     * @param valid
+     */
     void slotAppendPowerInfo(QString data, bool valid);
     void timerEvent(QTimerEvent *event);
 

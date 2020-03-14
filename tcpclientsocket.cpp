@@ -88,7 +88,7 @@ void TcpClientSocket::receivedata()
     short temp2=array.at(27);
     short temp3 = temp1<<8|temp2;
     bool flag1=false; // 最高位F表明温度为负
-    if(temp3&0xF000==0xF000){
+    if((temp3&0xF000)==0xF000){
         flag1=true;
     }
     temp3 = temp3&0x0FFF;
