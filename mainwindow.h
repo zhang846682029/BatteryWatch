@@ -24,6 +24,9 @@ public slots:
     void slotActionGroupEditortriggered(bool);
     void slotActionDeviceEditortriggered(bool);
 
+    void slotWarnMenu(const QPoint &pos);
+    void slotActionWarnEditortriggered(bool);
+
 private:
     Ui::MainWindow *ui;
     Server *mTcpServer;

@@ -152,6 +152,8 @@ QTreeView::branch:has-siblings:!adjoins-item {
     <addaction name="actionZoneEditor"/>
     <addaction name="actionGroupEditor"/>
     <addaction name="actionDeviceEditor"/>
+    <addaction name="separator"/>
+    <addaction name="actionEventEditor"/>
    </widget>
    <addaction name="menu"/>
   </widget>
@@ -171,6 +173,14 @@ QTreeView::branch:has-siblings:!adjoins-item {
    </property>
    <property name="toolTip">
     <string>Device Editor</string>
+   </property>
+  </action>
+  <action name="actionEventEditor">
+   <property name="text">
+    <string>Event Editor</string>
+   </property>
+   <property name="toolTip">
+    <string>Event Editor</string>
    </property>
   </action>
  </widget>

@@ -25,6 +25,7 @@ public:
     void creatTableZoneInfo(void); // 电池所属区域
     void creatTableGroupInfo(void); // 区域中的分组信息
     void initPropertyInfo(void);
+    void initEventInfo(void);
     void initZoneAndGroup(void);
 
     void getRealtimeDataFromDb(void); //

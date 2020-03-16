@@ -53,6 +53,7 @@ DataHandler::DataHandler(QObject *parent) : QObject(parent)
         creatTableGroupInfo();
 
         initPropertyInfo();
+        initEventInfo();
         initZoneAndGroup();
     }
     qDebug()<<dbconn.tables();
@@ -102,7 +103,7 @@ void DataHandler::creatTableWarningInfo()
                           "[clientIp] TEXT, "
                           "[clientMac] TEXT, "
                           "[clientAddress] INTEGER, "
-                          "[event] INTEGER NOT NULL REFERENCES [eventInfo]([id]), "
+                          "[event] INTEGER NOT NULL REFERENCES [eventInfo]([property]), "
                           "[time] TIME NOT NULL);");
     QSqlQuery query;
     query.exec(sql);
@@ -123,14 +124,16 @@ void DataHandler::creatTableEventInfo()
     // property 监控的参数
     // max 该参数的最大值
     // min 该参数的最小值
-    // count 连续异常超过count次就生成一个报警记录
+    // count 连续异常超过count次就生成一个报警记录 1count=1minute
     QString sql = QString("CREATE TABLE [eventInfo]("
-                          "[id] INTEGER NOT NULL UNIQUE, "
-                          "[desc] TEXT NOT NULL, "
-                          "[property] INTEGER NOT NULL, "
-                          "[max] FLOAT DEFAULT (-100000.00), "
-                          "[min] FLOAT DEFAULT (100000.00), "
-                          "[count] INTEGER NOT NULL DEFAULT 0);");
+                          "[property] INTEGER NOT NULL UNIQUE REFERENCES [batteryPropertyInfo]([id]), "
+                          "[event_desc] TEXT NOT NULL, "
+                          "[event_max] FLOAT, "
+                          "[event_max_enable] BOOL NOT NULL DEFAULT True, "
+                          "[event_min] FLOAT, "
+                          "[event_min_enable] BOOL NOT NULL DEFAULT True, "
+                          "[event_count] INTEGER NOT NULL DEFAULT 60, "
+                          "[event_enable] BOOL NOT NULL DEFAULT False);");
     QSqlQuery query;
     query.exec(sql);
 }
@@ -173,7 +176,13 @@ void DataHandler::creatTableGroupInfo()
 void DataHandler::initPropertyInfo()
 {
     QStringList propertyList;
-    propertyList<<"rate"<<"voltage"<<"current"<<"volume"<<"temp";
+//    propertyList<<"rate"<<"voltage"<<"current"<<"volume"<<"temp"<<"count";
+    propertyList<<tr("Rate"); // 电量百分比低
+    propertyList<<tr("Voltage"); // 电池电压低
+    propertyList<<tr("Current"); // 放电电流低
+    propertyList<<tr("Volume"); // 电池电量低
+    propertyList<<tr("Temperature"); // 温度异常
+    propertyList<<tr("Count"); // 电池寿命不足
     QSqlDatabase::database().transaction();
     QSqlQuery query;
     query.prepare("INSERT INTO batteryPropertyInfo "
@@ -184,6 +193,19 @@ void DataHandler::initPropertyInfo()
         query.exec();
     }
     QSqlDatabase::database().commit();
+}
+
+void DataHandler::initEventInfo()
+{
+    for(int n=0;n<6;n++){
+        QSqlQuery query;
+        QString sql=QString("INSERT INTO eventInfo "
+                            "(property,event_desc,event_max,event_max_enable,"
+                            "event_min,event_min_enable,event_count,event_enable) "
+                            "VALUES (%1,'',100.0,0,0.0,0,0,0)").arg(n+1);
+        bool r1=query.exec();
+        qDebug()<<__FUNCTION__<<r1<<sql;
+    }
 }
 
 void DataHandler::initZoneAndGroup()

@@ -21,7 +21,9 @@ SOURCES += main.cpp\
     tcpclientsocket.cpp \
     datahandler.cpp \
     dialoggroupeditor.cpp \
-    editordatahandler.cpp
+    editordatahandler.cpp \
+    dialogwarningsertting.cpp \
+    warndatahandler.cpp
 
 HEADERS  += mainwindow.h \
     batteryinfowidget.h \
@@ -29,11 +31,14 @@ HEADERS  += mainwindow.h \
     tcpclientsocket.h \
     datahandler.h \
     dialoggroupeditor.h \
-    editordatahandler.h
+    editordatahandler.h \
+    dialogwarningsertting.h \
+    warndatahandler.h
 
 FORMS += \
     mainwindow.ui \
-    dialoggroupeditor.ui
+    dialoggroupeditor.ui \
+    dialogwarningsertting.ui
 
 RESOURCES += \
     ui-resource.qrc

@@ -3,6 +3,7 @@
 #include "server.h"
 #include "datahandler.h"
 #include "dialoggroupeditor.h"
+#include "dialogwarningsertting.h"
 #include <QStandardItemModel>
 #include <QHeaderView>
 #include <QJsonObject>
@@ -24,6 +25,9 @@ MainWindow::MainWindow(QWidget *parent) :
             Qt::UniqueConnection);
     connect(ui->actionDeviceEditor,&QAction::triggered,\
             this,&MainWindow::slotActionDeviceEditortriggered,\
+            Qt::UniqueConnection);
+    connect(ui->actionEventEditor,&QAction::triggered,\
+            this,&MainWindow::slotActionWarnEditortriggered,\
             Qt::UniqueConnection);
 
     QPalette pal(this->palette());
@@ -55,6 +59,11 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->tableViewDeviceDetail->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
     ui->tableViewDeviceDetail->setSelectionBehavior(QAbstractItemView::SelectRows);
     ui->tableViewDeviceDetail->setSelectionMode(QAbstractItemView::SingleSelection);
+
+    // Event/Warn
+    ui->tableViewWarnningInfo->setContextMenuPolicy(Qt::CustomContextMenu);
+    connect(ui->tableViewWarnningInfo, &QTreeView::customContextMenuRequested, \
+            this, &MainWindow::slotWarnMenu);
 }
 
 MainWindow::~MainWindow()
@@ -74,6 +83,7 @@ void MainWindow::slotTreeMenu(const QPoint &pos)
     menu->addAction(ui->actionGroupEditor);
     menu->addAction(ui->actionDeviceEditor);
     menu->exec(ui->treeViewDevice->mapToGlobal(pos));
+    delete menu;
 }
 
 void MainWindow::slotActionZoneEditortriggered(bool)
@@ -98,4 +108,19 @@ void MainWindow::slotActionDeviceEditortriggered(bool)
     dlg_editor->exec();
     delete dlg_editor;
     mDataHandler->updateDeviceDetail();
+}
+
+void MainWindow::slotWarnMenu(const QPoint &pos)
+{
+    QMenu *menu = new QMenu(ui->tableViewWarnningInfo);
+    menu->addAction(ui->actionEventEditor);
+    menu->exec(ui->tableViewWarnningInfo->mapToGlobal(pos));
+    delete menu;
+}
+
+void MainWindow::slotActionWarnEditortriggered(bool)
+{
+    DialogWarningSertting *dlg = new DialogWarningSertting(this);
+    dlg->exec();
+    delete dlg;
 }
