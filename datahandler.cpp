@@ -43,20 +43,20 @@ DataHandler::DataHandler(QObject *parent) : QObject(parent)
         mDatabaseValid = true;
     }
 
-    if(dbconn.tables().count()<6){
-        creatTablePowerInfo();
-        creatTableWarningInfo();
-        creatTablePropertyInfo();
-        creatTableEventInfo();
-        creatTableBatteryDetailInfo();
-        creatTableZoneInfo();
-        creatTableGroupInfo();
 
-        initPropertyInfo();
-        initEventInfo();
-        initZoneAndGroup();
-    }
+    creatTablePowerInfo();
+    creatTableWarningInfo();
+    creatTablePropertyInfo();
+    creatTableEventInfo();
+    creatTableBatteryDetailInfo();
+    creatTableZoneInfo();
+    creatTableGroupInfo();
     qDebug()<<dbconn.tables();
+
+    initPropertyInfo();
+    initEventInfo();
+    initZoneAndGroup();
+
 
     startTimer(1*1000); // 10秒刷新一次界面数据
     // 库伦计60秒上传一次数据
@@ -74,6 +74,11 @@ DataHandler::~DataHandler()
 
 void DataHandler::creatTablePowerInfo()
 {
+    QSqlDatabase dbconn = QSqlDatabase::database();
+    if(dbconn.tables().contains(QString("batteryPowerInfo"))){
+        return;
+    }
+
     QString sql = QString("CREATE TABLE [batteryPowerInfo]("
                           "[sn] INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL UNIQUE, "
                           "[clientId] INTEGER NOT NULL, "
@@ -96,6 +101,11 @@ void DataHandler::creatTablePowerInfo()
 
 void DataHandler::creatTableWarningInfo()
 {
+    QSqlDatabase dbconn = QSqlDatabase::database();
+    if(dbconn.tables().contains(QString("warningInfo"))){
+        return;
+    }
+
     // id 事件编号 工单表中根据这个id找到具体的事件信息
     QString sql = QString("CREATE TABLE [warningInfo]("
                           "[id] INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL UNIQUE, "
@@ -111,6 +121,11 @@ void DataHandler::creatTableWarningInfo()
 
 void DataHandler::creatTablePropertyInfo()
 {
+    QSqlDatabase dbconn = QSqlDatabase::database();
+    if(dbconn.tables().contains(QString("batteryPropertyInfo"))){
+        return;
+    }
+
     QString sql = QString("CREATE TABLE [batteryPropertyInfo]("
                           "[id] INTEGER NOT NULL UNIQUE, "
                           "[name] TEXT NOT NULL);");
@@ -120,6 +135,11 @@ void DataHandler::creatTablePropertyInfo()
 
 void DataHandler::creatTableEventInfo()
 {
+    QSqlDatabase dbconn = QSqlDatabase::database();
+    if(dbconn.tables().contains(QString("eventInfo"))){
+        return;
+    }
+
     // desc 异常事件说明
     // property 监控的参数
     // max 该参数的最大值
@@ -140,6 +160,11 @@ void DataHandler::creatTableEventInfo()
 
 void DataHandler::creatTableBatteryDetailInfo()
 {
+    QSqlDatabase dbconn = QSqlDatabase::database();
+    if(dbconn.tables().contains(QString("batteryDetailInfo"))){
+        return;
+    }
+
     QString sql = QString("CREATE TABLE [batteryDetailInfo]("
                           "[clientId] INTEGER PRIMARY KEY NOT NULL UNIQUE, "
                           "[clientIp] TEXT, "
@@ -156,6 +181,11 @@ void DataHandler::creatTableBatteryDetailInfo()
 
 void DataHandler::creatTableZoneInfo()
 {
+    QSqlDatabase dbconn = QSqlDatabase::database();
+    if(dbconn.tables().contains(QString("zoneInfo"))){
+        return;
+    }
+
     QString sql = QString("CREATE TABLE [zoneInfo]("
                           "[id] INTEGER PRIMARY KEY AUTOINCREMENT, "
                           "[name] TEXT NOT NULL);");
@@ -165,6 +195,11 @@ void DataHandler::creatTableZoneInfo()
 
 void DataHandler::creatTableGroupInfo()
 {
+    QSqlDatabase dbconn = QSqlDatabase::database();
+    if(dbconn.tables().contains(QString("groupInfo"))){
+        return;
+    }
+
     QString sql = QString("CREATE TABLE [groupInfo]("
                           "[id] INTEGER PRIMARY KEY AUTOINCREMENT, "
                           "[name] TEXT NOT NULL, "
@@ -183,8 +218,16 @@ void DataHandler::initPropertyInfo()
     propertyList<<tr("Volume"); // 电池电量低
     propertyList<<tr("Temperature"); // 温度异常
     propertyList<<tr("Count"); // 电池寿命不足
-    QSqlDatabase::database().transaction();
+
     QSqlQuery query;
+    QString sql = QString("SELECT COUNT(*) FROM batteryPropertyInfo");
+    query.exec(sql);
+    query.next();
+    if(query.value(0).toInt()==propertyList.size()){
+        return;
+    }
+
+    QSqlDatabase::database().transaction();
     query.prepare("INSERT INTO batteryPropertyInfo "
                   "(id,name) VALUES (?,?)");
     for(int n=0;n<propertyList.size();n++){
@@ -197,27 +240,72 @@ void DataHandler::initPropertyInfo()
 
 void DataHandler::initEventInfo()
 {
-    for(int n=0;n<6;n++){
-        QSqlQuery query;
-        QString sql=QString("INSERT INTO eventInfo "
-                            "(property,event_desc,event_max,event_max_enable,"
-                            "event_min,event_min_enable,event_count,event_enable) "
-                            "VALUES (%1,'',100.0,0,0.0,0,0,0)").arg(n+1);
-        bool r1=query.exec();
-        qDebug()<<__FUNCTION__<<r1<<sql;
+    QSqlQuery query;
+    QString sql = QString("SELECT COUNT(*) FROM eventInfo");
+    query.exec(sql);
+    query.next();
+    int cnt1=query.value(0).toInt();
+    sql = QString("SELECT * FROM batteryPropertyInfo");
+    query.exec(sql);
+    QMap<int,QString> map_property;
+    while(query.next()){
+        int property_id = query.value(0).toInt();
+        QString property_name = query.value(1).toString();
+        map_property[property_id]=property_name;
     }
+    int cnt2=map_property.size();
+    qDebug()<<__FUNCTION__<<cnt1<<cnt2;
+    if(cnt1==cnt2&&cnt1!=0){
+        return;
+    }
+
+    QSqlDatabase::database().transaction();
+    query.prepare("INSERT INTO eventInfo "
+                  "(property,event_desc,event_max,event_max_enable,"
+                  "event_min,event_min_enable,event_count,event_enable) "
+                  "VALUES (?,?,?,?,?,?,?,?);");
+    QMapIterator<int,QString> iter(map_property);
+    while(iter.hasNext()){
+        iter.next();
+
+        query.addBindValue(iter.key());
+        query.addBindValue(iter.value()+QString(" Error"));
+        query.addBindValue(100.0);
+        query.addBindValue(0);
+        query.addBindValue(0.0);
+        query.addBindValue(0);
+        query.addBindValue(0);
+        query.addBindValue(0);
+        query.exec();
+    }
+    QSqlDatabase::database().commit();
 }
 
 void DataHandler::initZoneAndGroup()
 {
     QSqlQuery query;
-    QString sql = QString("INSERT INTO zoneInfo (name) VALUES ('z0')");
+
+    QString sql = QString("SELECT COUNT(*) FROM zoneInfo WHERE id=1");
     bool r1 = query.exec(sql);
     qDebug()<<r1<<sql;
+    query.next();
+    int cnt1=query.value(0).toInt();
+    if(cnt1<=0){
+        sql = QString("INSERT INTO zoneInfo (name) VALUES ('z0')");
+        r1 = query.exec(sql);
+        qDebug()<<r1<<sql;
+    }
 
-    sql = QString("INSERT INTO groupInfo (name,zone) VALUES ('g0',1)");
+    sql = QString("SELECT COUNT(*) FROM groupInfo WHERE id=1");
     r1 = query.exec(sql);
     qDebug()<<r1<<sql;
+    query.next();
+    int cnt2=query.value(0).toInt();
+    if(cnt2<=0){
+        sql = QString("INSERT INTO groupInfo (name,zone) VALUES ('g0',1)");
+        r1 = query.exec(sql);
+        qDebug()<<r1<<sql;
+    }
 }
 
 void DataHandler::getRealtimeDataFromDb()
