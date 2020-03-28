@@ -46,14 +46,12 @@ DataHandler::DataHandler(QObject *parent) : QObject(parent)
 
     creatTablePowerInfo();
     creatTableWarningInfo();
-    creatTablePropertyInfo();
     creatTableEventInfo();
     creatTableBatteryDetailInfo();
     creatTableZoneInfo();
     creatTableGroupInfo();
     qDebug()<<dbconn.tables();
 
-    initPropertyInfo();
     initEventInfo();
     initZoneAndGroup();
 
@@ -94,7 +92,7 @@ void DataHandler::creatTablePowerInfo()
                           "[count] INTEGER NOT NULL, "
                           "[alarm] INTEGER NOT NULL, "
                           "[interval] INTEGER, "
-                          "[time] TIME);");
+                          "[recordTime] TIME);");
     QSqlQuery query;
     query.exec(sql);
 }
@@ -114,21 +112,9 @@ void DataHandler::creatTableWarningInfo()
                           "[clientMac] TEXT, "
                           "[clientAddress] INTEGER, "
                           "[event] INTEGER NOT NULL REFERENCES [eventInfo]([property]), "
-                          "[time] TIME NOT NULL);");
-    QSqlQuery query;
-    query.exec(sql);
-}
-
-void DataHandler::creatTablePropertyInfo()
-{
-    QSqlDatabase dbconn = QSqlDatabase::database();
-    if(dbconn.tables().contains(QString("batteryPropertyInfo"))){
-        return;
-    }
-
-    QString sql = QString("CREATE TABLE [batteryPropertyInfo]("
-                          "[id] INTEGER NOT NULL UNIQUE, "
-                          "[name] TEXT NOT NULL);");
+                          "[time_start] TIME NOT NULL, "
+                          "[time_end] TIME, "
+                          "[state] BOOL NOT NULL);");
     QSqlQuery query;
     query.exec(sql);
 }
@@ -146,7 +132,7 @@ void DataHandler::creatTableEventInfo()
     // min 该参数的最小值
     // count 连续异常超过count次就生成一个报警记录 1count=1minute
     QString sql = QString("CREATE TABLE [eventInfo]("
-                          "[property] INTEGER NOT NULL UNIQUE REFERENCES [batteryPropertyInfo]([id]), "
+                          "[property] INTEGER NOT NULL UNIQUE, "
                           "[event_desc] TEXT NOT NULL, "
                           "[event_max] FLOAT, "
                           "[event_max_enable] BOOL NOT NULL DEFAULT True, "
@@ -208,36 +194,6 @@ void DataHandler::creatTableGroupInfo()
     query.exec(sql);
 }
 
-void DataHandler::initPropertyInfo()
-{
-    QStringList propertyList;
-//    propertyList<<"rate"<<"voltage"<<"current"<<"volume"<<"temp"<<"count";
-    propertyList<<tr("Rate"); // 电量百分比低
-    propertyList<<tr("Voltage"); // 电池电压低
-    propertyList<<tr("Current"); // 放电电流低
-    propertyList<<tr("Volume"); // 电池电量低
-    propertyList<<tr("Temperature"); // 温度异常
-    propertyList<<tr("Count"); // 电池寿命不足
-
-    QSqlQuery query;
-    QString sql = QString("SELECT COUNT(*) FROM batteryPropertyInfo");
-    query.exec(sql);
-    query.next();
-    if(query.value(0).toInt()==propertyList.size()){
-        return;
-    }
-
-    QSqlDatabase::database().transaction();
-    query.prepare("INSERT INTO batteryPropertyInfo "
-                  "(id,name) VALUES (?,?)");
-    for(int n=0;n<propertyList.size();n++){
-        query.addBindValue(n+1);
-        query.addBindValue(propertyList.at(n));
-        query.exec();
-    }
-    QSqlDatabase::database().commit();
-}
-
 void DataHandler::initEventInfo()
 {
     QSqlQuery query;
@@ -245,14 +201,14 @@ void DataHandler::initEventInfo()
     query.exec(sql);
     query.next();
     int cnt1=query.value(0).toInt();
-    sql = QString("SELECT * FROM batteryPropertyInfo");
-    query.exec(sql);
     QMap<int,QString> map_property;
-    while(query.next()){
-        int property_id = query.value(0).toInt();
-        QString property_name = query.value(1).toString();
-        map_property[property_id]=property_name;
-    }
+    map_property[1]=QString("Rate");
+    map_property[2]=QString("Voltage");
+    map_property[3]=QString("Current");
+    map_property[4]=QString("Volume");
+    map_property[5]=QString("Temperature");
+    map_property[6]=QString("Life");
+    map_property[7]=QString("Connect");
     int cnt2=map_property.size();
     qDebug()<<__FUNCTION__<<cnt1<<cnt2;
     if(cnt1==cnt2&&cnt1!=0){
@@ -274,7 +230,7 @@ void DataHandler::initEventInfo()
         query.addBindValue(0);
         query.addBindValue(0.0);
         query.addBindValue(0);
-        query.addBindValue(0);
+        query.addBindValue(60);
         query.addBindValue(0);
         query.exec();
     }
@@ -656,7 +612,10 @@ void DataHandler::onDeviceAppend(int id, QString ip, QString mac, int address)
 
 void DataHandler::onDeviceSelected(QMap<QString, QString> info)
 {
-    mModelDetailInfo->clear();
+//    mModelDetailInfo->clear();
+    mModelDetailInfo->rowCount();
+    mModelDetailInfo->removeRows(0,mModelDetailInfo->rowCount());
+
     QMapIterator<QString, QString> i(info);
     int row_index=0;
     while (i.hasNext()) {
@@ -715,9 +674,9 @@ void DataHandler::updateDeviceDetail()
 void DataHandler::getLastPowerInfo(int client)
 {
     QString sql=QString("SELECT * FROM batteryPowerInfo "
-                        "WHERE time > datetime('now','localtime','-1 day') "
+                        "WHERE recordTime > datetime('now','localtime','-1 day') "
                         "AND clientId=%1 "
-                        "ORDER BY time DESC").arg(client);
+                        "ORDER BY recordTime DESC").arg(client);
     QSqlQuery query;
     bool r1=query.exec(sql);
     qDebug()<<r1<<sql;
@@ -818,7 +777,7 @@ void DataHandler::slotAppendPowerInfo(QString data, bool valid)
 
     QString sql2=QString("INSERT INTO batteryPowerInfo "
                          "(clientId,clientIp,clientMac,clientAddress,rate,voltage,current,volume,"
-                         "temp,direction,count,alarm,interval,time) "
+                         "temp,direction,count,alarm,interval,recordTime) "
                          "VALUES (%1,'%2','%3',%4,%5,%6,%7,%8,%9,%10,%11,%12,%13,"
                          "datetime('now','localtime'))")
             .arg(identify_id)

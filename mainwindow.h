@@ -5,6 +5,7 @@
 
 class Server;
 class DataHandler;
+class WarningHandler;
 namespace Ui {
 class MainWindow;
 }
@@ -25,12 +26,14 @@ public slots:
     void slotActionDeviceEditortriggered(bool);
 
     void slotWarnMenu(const QPoint &pos);
-    void slotActionWarnEditortriggered(bool);
+    void slotActionWarnEditorTriggered(bool);
+    void slotActionWarnMoreTriggered(bool);
 
 private:
     Ui::MainWindow *ui;
     Server *mTcpServer;
     DataHandler *mDataHandler;
+    WarningHandler *mWarningHandler;
 };
 
 #endif // MAINWINDOW_H

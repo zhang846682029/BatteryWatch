@@ -7,26 +7,13 @@
 
 WarnDataHandler::WarnDataHandler(QObject *parent) : QObject(parent)
 {
-    initPropertyList();
+
 }
 
-void WarnDataHandler::initPropertyList()
+void WarnDataHandler::slotPropertySelected(int index)
 {
-    QString sql = QString("SELECT * FROM batteryPropertyInfo");
-    QSqlQuery query;
-    bool r1=query.exec(sql);
-    qDebug()<<r1<<sql;
-
-    while(query.next()){
-        int id=query.value(0).toInt();
-        QString name = query.value(1).toString();
-        mPropertys[name]=id;
-    }
-}
-
-void WarnDataHandler::slotPropertySelected(QString name)
-{
-    int id = mPropertys[name];
+//    int id = mPropertys[name];
+    int id = index+1;
 
     QString sql = QString("SELECT * FROM eventInfo WHERE property=%1").arg(id);
     QSqlQuery query;
@@ -80,9 +67,9 @@ void WarnDataHandler::slotPropertyModified(QByteArray array)
     }
 
     QJsonObject obj=doc.object();
-//    int event_property = obj["property"].toInt();
-    QString event_property_string = obj["propertyName"].toString();
-    int event_property = mPropertys[event_property_string];
+    int event_property = obj["property"].toInt();
+//    QString event_property_string = obj["propertyName"].toString();
+//    int event_property = mPropertys[event_property_string];
     QString event_desc = obj["desc"].toString();
     float event_max = obj["max"].toDouble();
     bool event_max_enable = obj["maxEnable"].toBool();

@@ -23,7 +23,9 @@ SOURCES += main.cpp\
     dialoggroupeditor.cpp \
     editordatahandler.cpp \
     dialogwarningsertting.cpp \
-    warndatahandler.cpp
+    warndatahandler.cpp \
+    warninghandler.cpp \
+    dialogwarningmore.cpp
 
 HEADERS  += mainwindow.h \
     batteryinfowidget.h \
@@ -33,12 +35,15 @@ HEADERS  += mainwindow.h \
     dialoggroupeditor.h \
     editordatahandler.h \
     dialogwarningsertting.h \
-    warndatahandler.h
+    warndatahandler.h \
+    warninghandler.h \
+    dialogwarningmore.h
 
 FORMS += \
     mainwindow.ui \
     dialoggroupeditor.ui \
-    dialogwarningsertting.ui
+    dialogwarningsertting.ui \
+    dialogwarningmore.ui
 
 RESOURCES += \
     ui-resource.qrc

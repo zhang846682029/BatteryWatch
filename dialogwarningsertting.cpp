@@ -13,31 +13,17 @@ DialogWarningSertting::DialogWarningSertting(QWidget *parent) :
 {
     ui->setupUi(this);
     dataHandler=new WarnDataHandler(this);
-    QStringList properties=dataHandler->getPropertyList();
-    QStringList properties_translate;
-    QStringListIterator iter(properties);
-    while (iter.hasNext()){
-        QString from=iter.next();
-        QString to=from;
-        if(from==QString("rate")){
-            to=tr("rate");
-        } else if(from==QString("voltage")){
-            to=tr("voltage");
-        } else if(from==QString("current")){
-            to=tr("current");
-        } else if(from==QString("volume")){
-            to=tr("volume");
-        } else if(from==QString("temp")){
-            to=tr("temp");
-        } else if(from==QString("count")){
-            to=tr("count");
-        } else {}
-        properties_translate<<to;
-    }
-    ui->combxWarnType->addItems(properties_translate);
 
-    connect(ui->combxWarnType,&QComboBox::currentTextChanged,\
-            dataHandler,&WarnDataHandler::slotPropertySelected);
+    ui->combxWarnType->insertItem(0,tr("rate"));
+    ui->combxWarnType->insertItem(1,tr("voltage"));
+    ui->combxWarnType->insertItem(2,tr("current"));
+    ui->combxWarnType->insertItem(3,tr("volume"));
+    ui->combxWarnType->insertItem(4,tr("temperature"));
+    ui->combxWarnType->insertItem(5,tr("life"));
+    ui->combxWarnType->insertItem(6,tr("connect"));
+
+    connect(ui->combxWarnType,SIGNAL(currentIndexChanged(int)), \
+            dataHandler,SLOT(slotPropertySelected(int)));
     connect(dataHandler,&WarnDataHandler::sigPropertySelected,
             this,&DialogWarningSertting::slotPropertySelected);
     connect(this,&DialogWarningSertting::sigPropertyModified,\
@@ -48,6 +34,8 @@ DialogWarningSertting::DialogWarningSertting(QWidget *parent) :
             this,&DialogWarningSertting::on_checkWarnMinEnable_toggled);
     connect(ui->checkWarnMaxEnable,&QCheckBox::toggled,\
             this,&DialogWarningSertting::on_checkWarnMaxEnable_toggled);
+
+    ui->combxWarnType->setCurrentIndex(5);
 }
 
 DialogWarningSertting::~DialogWarningSertting()
@@ -57,7 +45,8 @@ DialogWarningSertting::~DialogWarningSertting()
 
 void DialogWarningSertting::on_btnWarnConfirm_clicked(bool)
 {
-    QString event_property = ui->combxWarnType->currentText();
+//    QString event_property = ui->combxWarnType->currentText();
+    int event_property=ui->combxWarnType->currentIndex()+1;
     QString event_desc = ui->editWarnDesc->text();
     float event_min = ui->editWarnMin->text().toFloat();
     bool event_min_enable = !ui->checkWarnMinEnable->isChecked();
@@ -67,10 +56,8 @@ void DialogWarningSertting::on_btnWarnConfirm_clicked(bool)
     int event_count = event_count_tt*60;
     bool event_enable = ui->checkWarnEneble->isChecked();
 
-    if(event_enable==false) return;
-
     QJsonObject device_info_map;
-    device_info_map["propertyName"]=event_property;
+    device_info_map["property"]=event_property;
     device_info_map["desc"]=event_desc;
     device_info_map["max"]=event_max;
     device_info_map["maxEnable"]=event_max_enable;

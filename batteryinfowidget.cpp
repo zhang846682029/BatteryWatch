@@ -232,6 +232,7 @@ void BatteryInfoWidget::draw(QPainter *painter)
 //    painter->drawRect(240,260,160,120);
     double current = mDeviceCurrent;
     double cycleCount = mDeviceCount;
+    cycleCount=cycleCount/10.0;
     painter->translate(240,240);
     painter->drawText(0,0,160,20,Qt::AlignCenter,tr("Percent %1 \%").arg(powerPercent));
     painter->drawText(0,20,160,20,Qt::AlignCenter,tr("Voltage %1 V").arg(voltageLeft));

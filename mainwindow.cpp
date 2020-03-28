@@ -4,6 +4,8 @@
 #include "datahandler.h"
 #include "dialoggroupeditor.h"
 #include "dialogwarningsertting.h"
+#include "dialogwarningmore.h"
+#include "warninghandler.h"
 #include <QStandardItemModel>
 #include <QHeaderView>
 #include <QJsonObject>
@@ -27,7 +29,10 @@ MainWindow::MainWindow(QWidget *parent) :
             this,&MainWindow::slotActionDeviceEditortriggered,\
             Qt::UniqueConnection);
     connect(ui->actionEventEditor,&QAction::triggered,\
-            this,&MainWindow::slotActionWarnEditortriggered,\
+            this,&MainWindow::slotActionWarnEditorTriggered,\
+            Qt::UniqueConnection);
+    connect(ui->actionEventMore,&QAction::triggered,\
+            this,&MainWindow::slotActionWarnMoreTriggered,\
             Qt::UniqueConnection);
 
     QPalette pal(this->palette());
@@ -61,6 +66,11 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->tableViewDeviceDetail->setSelectionMode(QAbstractItemView::SingleSelection);
 
     // Event/Warn
+    mWarningHandler = new WarningHandler(this);
+    ui->tableViewWarnningInfo->setModel(mWarningHandler->getModelWarningInfo());
+    ui->tableViewWarnningInfo->horizontalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
+    ui->tableViewWarnningInfo->setSelectionBehavior(QAbstractItemView::SelectRows);
+    ui->tableViewWarnningInfo->setSelectionMode(QAbstractItemView::SingleSelection);
     ui->tableViewWarnningInfo->setContextMenuPolicy(Qt::CustomContextMenu);
     connect(ui->tableViewWarnningInfo, &QTreeView::customContextMenuRequested, \
             this, &MainWindow::slotWarnMenu);
@@ -107,6 +117,7 @@ void MainWindow::slotActionDeviceEditortriggered(bool)
     DialogGroupEditor *dlg_editor=new DialogGroupEditor(2,this);
     dlg_editor->exec();
     delete dlg_editor;
+    mDataHandler->getDeviceTree();
     mDataHandler->updateDeviceDetail();
 }
 
@@ -114,13 +125,22 @@ void MainWindow::slotWarnMenu(const QPoint &pos)
 {
     QMenu *menu = new QMenu(ui->tableViewWarnningInfo);
     menu->addAction(ui->actionEventEditor);
+    menu->addAction(ui->actionEventMore);
     menu->exec(ui->tableViewWarnningInfo->mapToGlobal(pos));
     delete menu;
 }
 
-void MainWindow::slotActionWarnEditortriggered(bool)
+void MainWindow::slotActionWarnEditorTriggered(bool)
 {
     DialogWarningSertting *dlg = new DialogWarningSertting(this);
+    dlg->exec();
+    delete dlg;
+    mWarningHandler->initEventInfo();
+}
+
+void MainWindow::slotActionWarnMoreTriggered(bool)
+{
+    DialogWarningMore *dlg = new DialogWarningMore(this);
     dlg->exec();
     delete dlg;
 }

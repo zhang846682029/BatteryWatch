@@ -131,7 +131,7 @@ void DialogGroupEditor::slotDetailSelected(QByteArray array)
     if(device_install_string.isEmpty()){
         QDateTime install_time=QDateTime::fromString(QString("1970-01-01 08:00:00"),\
                                                      QString("yyyy-MM-dd hh:mm:ss"));
-        ui->dateTimeEdit->setDateTime(install_time);
+        ui->dateTimeEdit->setDateTime(QDateTime::currentDateTime());
     } else {
         QDateTime install_time=QDateTime::fromString(device_install_string,\
                                                      QString("yyyy-MM-dd hh:mm:ss"));
