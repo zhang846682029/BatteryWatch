@@ -5,6 +5,7 @@
 #include "dialoggroupeditor.h"
 #include "dialogwarningsertting.h"
 #include "dialogwarningmore.h"
+#include "dialogrecordchart.h"
 #include "warninghandler.h"
 #include <QStandardItemModel>
 #include <QHeaderView>
@@ -33,6 +34,9 @@ MainWindow::MainWindow(QWidget *parent) :
             Qt::UniqueConnection);
     connect(ui->actionEventMore,&QAction::triggered,\
             this,&MainWindow::slotActionWarnMoreTriggered,\
+            Qt::UniqueConnection);
+    connect(ui->actionCharts,&QAction::triggered,\
+            this,&MainWindow::slotActionChartsTriggered,\
             Qt::UniqueConnection);
 
     QPalette pal(this->palette());
@@ -92,6 +96,7 @@ void MainWindow::slotTreeMenu(const QPoint &pos)
     menu->addAction(ui->actionZoneEditor);
     menu->addAction(ui->actionGroupEditor);
     menu->addAction(ui->actionDeviceEditor);
+    menu->addAction(ui->actionCharts);
     menu->exec(ui->treeViewDevice->mapToGlobal(pos));
     delete menu;
 }
@@ -141,6 +146,13 @@ void MainWindow::slotActionWarnEditorTriggered(bool)
 void MainWindow::slotActionWarnMoreTriggered(bool)
 {
     DialogWarningMore *dlg = new DialogWarningMore(this);
+    dlg->exec();
+    delete dlg;
+}
+
+void MainWindow::slotActionChartsTriggered(bool)
+{
+    DialogRecordChart *dlg = new DialogRecordChart(this);
     dlg->exec();
     delete dlg;
 }

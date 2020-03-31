@@ -163,9 +163,16 @@ QTreeView::branch:has-siblings:!adjoins-item {
     <addaction name="actionDeviceEditor"/>
     <addaction name="separator"/>
     <addaction name="actionEventEditor"/>
+   </widget>
+   <widget class="QMenu" name="menuDate">
+    <property name="title">
+     <string>Charts</string>
+    </property>
     <addaction name="actionEventMore"/>
+    <addaction name="actionCharts"/>
    </widget>
    <addaction name="menu"/>
+   <addaction name="menuDate"/>
   </widget>
   <action name="actionGroupEditor">
    <property name="text">
@@ -199,6 +206,14 @@ QTreeView::branch:has-siblings:!adjoins-item {
    </property>
    <property name="toolTip">
     <string>Event More</string>
+   </property>
+  </action>
+  <action name="actionCharts">
+   <property name="text">
+    <string>Record Charts</string>
+   </property>
+   <property name="toolTip">
+    <string>Record Charts</string>
    </property>
   </action>
  </widget>

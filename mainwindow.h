@@ -29,6 +29,8 @@ public slots:
     void slotActionWarnEditorTriggered(bool);
     void slotActionWarnMoreTriggered(bool);
 
+    void slotActionChartsTriggered(bool);
+
 private:
     Ui::MainWindow *ui;
     Server *mTcpServer;

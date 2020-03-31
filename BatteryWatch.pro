@@ -4,9 +4,10 @@
 #
 #-------------------------------------------------
 
-QT       += core gui
+QT += core gui
 QT += network
 QT += sql
+QT += charts
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
@@ -25,7 +26,9 @@ SOURCES += main.cpp\
     dialogwarningsertting.cpp \
     warndatahandler.cpp \
     warninghandler.cpp \
-    dialogwarningmore.cpp
+    dialogwarningmore.cpp \
+    dialogrecordchart.cpp \
+    qchartviewbattery.cpp
 
 HEADERS  += mainwindow.h \
     batteryinfowidget.h \
@@ -37,13 +40,16 @@ HEADERS  += mainwindow.h \
     dialogwarningsertting.h \
     warndatahandler.h \
     warninghandler.h \
-    dialogwarningmore.h
+    dialogwarningmore.h \
+    dialogrecordchart.h \
+    qchartviewbattery.h
 
 FORMS += \
     mainwindow.ui \
     dialoggroupeditor.ui \
     dialogwarningsertting.ui \
-    dialogwarningmore.ui
+    dialogwarningmore.ui \
+    dialogrecordchart.ui
 
 RESOURCES += \
     ui-resource.qrc
