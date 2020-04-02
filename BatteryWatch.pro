@@ -53,3 +53,5 @@ FORMS += \
 
 RESOURCES += \
     ui-resource.qrc
+
+RC_ICONS = battery.ico
