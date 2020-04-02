@@ -5,5 +5,6 @@
         <file>images/stylesheet-branch-more.png</file>
         <file>images/stylesheet-branch-open.png</file>
         <file>images/stylesheet-vline.png</file>
+        <file>battery_cn.qm</file>
     </qresource>
 </RCC>

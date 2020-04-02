@@ -55,3 +55,4 @@ RESOURCES += \
     ui-resource.qrc
 
 RC_ICONS = battery.ico
+TRANSLATIONS += battery_cn.ts
