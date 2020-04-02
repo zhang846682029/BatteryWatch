@@ -600,12 +600,21 @@ void DataHandler::onZoneAppend(QString name)
 void DataHandler::onDeviceAppend(int id, QString ip, QString mac, int address)
 {
     QSqlQuery query;
-    QString sql=QString("INSERT INTO batteryDetailInfo "
-                        "(clientId,clientIp,clientMac,clientAddress,groupId) "
-                        "VALUES (%1,'%2','%3',%4,1)")
-            .arg(id).arg(ip).arg(mac).arg(address);
+    int battery_cnt=0;
+    QString sql = QString("SELECT COUNT(*) FROM batteryDetailInfo;");
     bool r1 = query.exec(sql);
-    qDebug()<<__FUNCTION__<<r1<<sql;
+    qDebug()<<r1<<sql;
+    if(query.next()){
+        battery_cnt=query.value(0).toInt();
+    }
+    if(battery_cnt<5){
+        QString sql=QString("INSERT INTO batteryDetailInfo "
+                            "(clientId,clientIp,clientMac,clientAddress,groupId) "
+                            "VALUES (%1,'%2','%3',%4,1)")
+                .arg(id).arg(ip).arg(mac).arg(address);
+        bool r1 = query.exec(sql);
+        qDebug()<<__FUNCTION__<<r1<<sql;
+    }
 
     getDeviceTree();
 }
@@ -775,27 +784,36 @@ void DataHandler::slotAppendPowerInfo(QString data, bool valid)
         return ;
     }
 
-    QString sql2=QString("INSERT INTO batteryPowerInfo "
-                         "(clientId,clientIp,clientMac,clientAddress,rate,voltage,current,volume,"
-                         "temp,direction,count,alarm,interval,recordTime) "
-                         "VALUES (%1,'%2','%3',%4,%5,%6,%7,%8,%9,%10,%11,%12,%13,"
-                         "datetime('now','localtime'))")
-            .arg(identify_id)
-            .arg(identify_ip)
-            .arg(identify_mac)
-            .arg(identify_address)
-            .arg(property_rate)
-            .arg(property_voltage)
-            .arg(property_current)
-            .arg(property_volume)
-            .arg(property_temp)
-            .arg(property_direction)
-            .arg(property_count)
-            .arg(property_alarm)
-            .arg(property_interval);
     QSqlQuery query;
-    bool r2=query.exec(sql2);
-    qDebug()<<r2<<sql2;
+    int record_cnt = 0;
+    QString sql = QString("SELECT COUNT(*) FROM batteryPowerInfo;");
+    bool r1 = query.exec(sql);
+    qDebug()<<r1<<sql;
+    if(query.exec()){
+        record_cnt=query.value(0).toInt();
+    }
+    if(record_cnt<=3360){
+        QString sql2=QString("INSERT INTO batteryPowerInfo "
+                             "(clientId,clientIp,clientMac,clientAddress,rate,voltage,current,volume,"
+                             "temp,direction,count,alarm,interval,recordTime) "
+                             "VALUES (%1,'%2','%3',%4,%5,%6,%7,%8,%9,%10,%11,%12,%13,"
+                             "datetime('now','localtime'))")
+                .arg(identify_id)
+                .arg(identify_ip)
+                .arg(identify_mac)
+                .arg(identify_address)
+                .arg(property_rate)
+                .arg(property_voltage)
+                .arg(property_current)
+                .arg(property_volume)
+                .arg(property_temp)
+                .arg(property_direction)
+                .arg(property_count)
+                .arg(property_alarm)
+                .arg(property_interval);
+        bool r2=query.exec(sql2);
+        qDebug()<<r2<<sql2;
+    }
 
     if(mCurrentClient==identify_id){
         // todo
