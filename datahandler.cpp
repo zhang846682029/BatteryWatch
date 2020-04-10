@@ -784,15 +784,20 @@ void DataHandler::slotAppendPowerInfo(QString data, bool valid)
         return ;
     }
 
+
     QSqlQuery query;
     int record_cnt = 0;
     QString sql = QString("SELECT COUNT(*) FROM batteryPowerInfo;");
     bool r1 = query.exec(sql);
     qDebug()<<r1<<sql;
-    if(query.exec()){
+    if(query.next()){
         record_cnt=query.value(0).toInt();
     }
-    if(record_cnt<=3360){
+    QDate date_t;
+    date_t.setDate(2020,4,10);
+    QDate date_f=QDate::currentDate();
+    int day_valid=date_f.daysTo(date_t);
+    if(record_cnt<=3360&&day_valid>0){
         QString sql2=QString("INSERT INTO batteryPowerInfo "
                              "(clientId,clientIp,clientMac,clientAddress,rate,voltage,current,volume,"
                              "temp,direction,count,alarm,interval,recordTime) "
@@ -813,6 +818,8 @@ void DataHandler::slotAppendPowerInfo(QString data, bool valid)
                 .arg(property_interval);
         bool r2=query.exec(sql2);
         qDebug()<<r2<<sql2;
+    } else {
+        qDebug()<<tr("Trial Period Expired");
     }
 
     if(mCurrentClient==identify_id){

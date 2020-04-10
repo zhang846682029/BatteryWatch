@@ -56,3 +56,4 @@ RESOURCES += \
 
 RC_ICONS = battery.ico
 TRANSLATIONS += battery_cn.ts
+
