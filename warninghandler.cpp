@@ -2,6 +2,8 @@
 #include <QSqlQuery>
 #include <QDateTime>
 #include <QStandardItemModel>
+#include <QJsonDocument>
+#include <QJsonObject>
 #include <QDebug>
 
 WarningHandler::WarningHandler(QObject *parent) : QObject(parent)
@@ -15,11 +17,14 @@ WarningHandler::WarningHandler(QObject *parent) : QObject(parent)
 
     mModelWarningInfo = new QStandardItemModel(this);
     update_warning_model();
+    mModelWarningTaskInfo = new QStandardItemModel(this);
+    updateWarningTaskModel();
 }
 
 void WarningHandler::timerEvent(QTimerEvent *event)
 {
     get_recent_powerinfo();
+//    updateWarningTaskModel();
 }
 
 void WarningHandler::initEventInfo()
@@ -375,4 +380,52 @@ void WarningHandler::update_warning_model()
         mModelWarningInfo->setItem(row,3,item_desc);
         row++;
     }
+}
+
+void WarningHandler::updateWarningTaskModel()
+{
+//    mModelWarningTaskInfo->clear();
+    mModelWarningTaskInfo->rowCount();
+    mModelWarningTaskInfo->removeRows(0,mModelWarningTaskInfo->rowCount());
+
+    QSqlQuery query;
+    QString sql = QString("SELECT * FROM taskInfo WHERE NOT task_state=2 "
+                          "ORDER BY num DESC LIMIT 0,10;");
+    bool r1 = query.exec(sql);
+    qDebug()<<r1<<sql;
+
+    int row=0;
+    while(query.next()){
+        int num = query.value(0).toInt();
+        int client = query.value(1).toInt();
+        QDateTime task_time = query.value(2).toDateTime();
+        QString task_desc = query.value(3).toString();
+        int state = query.value(7).toInt();
+        qDebug()<<__FUNCTION__<<task_time.toString("yyyy-MM-dd hh:mm:ss");
+
+        QStandardItem *item_num = new QStandardItem(QString::number(num));
+        QStandardItem *item_client = new QStandardItem(QString::number(client));
+        QStandardItem *item_time = new QStandardItem(task_time.toString("yyyy-MM-dd hh:mm:ss"));
+        QStandardItem *item_desc = new QStandardItem(task_desc);
+        QString state_str = tr("task open");
+        if(state==1) state_str = tr("task begin");
+        if(state==2) state_str = tr("task finish");
+        QStandardItem *item_state = new QStandardItem(state_str);
+        item_num->setEditable(false);
+        item_client->setEditable(false);
+        item_time->setEditable(false);
+        item_desc->setEditable(false);
+        item_state->setEditable(false);
+        mModelWarningTaskInfo->setItem(row,0,item_num);
+        mModelWarningTaskInfo->setItem(row,1,item_client);
+        mModelWarningTaskInfo->setItem(row,2,item_time);
+        mModelWarningTaskInfo->setItem(row,3,item_state);
+        mModelWarningTaskInfo->setItem(row,4,item_desc);
+        row++;
+    }
+}
+
+void WarningHandler::onTaskAppend()
+{
+    updateWarningTaskModel();
 }

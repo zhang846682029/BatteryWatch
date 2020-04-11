@@ -45,8 +45,9 @@ DataHandler::DataHandler(QObject *parent) : QObject(parent)
 
 
     creatTablePowerInfo();
-    creatTableWarningInfo();
-    creatTableEventInfo();
+    creatTableWarningTaskInfo(); // 工单报警
+    creatTableWarningInfo(); // 参数报警
+    creatTableEventInfo(); // 参数
     creatTableBatteryDetailInfo();
     creatTableZoneInfo();
     creatTableGroupInfo();
@@ -97,6 +98,26 @@ void DataHandler::creatTablePowerInfo()
     query.exec(sql);
 }
 
+void DataHandler::creatTableWarningTaskInfo()
+{
+    QSqlDatabase dbconn = QSqlDatabase::database();
+    if(dbconn.tables().contains(QString("taskInfo"))){
+        return;
+    }
+
+    QString sql = QString("CREATE TABLE [taskInfo]("
+                          "[num] INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL UNIQUE, "
+                          "[battery] INTEGER NOT NULL, "
+                          "[task_time] TIME NOT NULL, "
+                          "[task_reason] TEXT, "
+                          "[engineer_name] TEXT, "
+                          "[engineer_phone] TEXT, "
+                          "[task_result] TEXT, "
+                          "[task_state] INTEGER NOT NULL);");
+    QSqlQuery query;
+    query.exec(sql);
+}
+
 void DataHandler::creatTableWarningInfo()
 {
     QSqlDatabase dbconn = QSqlDatabase::database();
@@ -104,7 +125,6 @@ void DataHandler::creatTableWarningInfo()
         return;
     }
 
-    // id 事件编号 工单表中根据这个id找到具体的事件信息
     QString sql = QString("CREATE TABLE [warningInfo]("
                           "[id] INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL UNIQUE, "
                           "[clientId] INTEGER NOT NULL, "
@@ -274,6 +294,9 @@ void DataHandler::getRealtimeDataFromDb()
 
 void DataHandler::getDeviceTree()
 {
+    mModelTree->clear();
+    QStandardItem *parentItem = mModelTree->invisibleRootItem();
+
     QSqlQuery query;
     QMap<int,QStandardItem *> map_zone_item;
     query.exec("SELECT id,name FROM zoneInfo WHERE NOT id=1");
@@ -287,22 +310,22 @@ void DataHandler::getDeviceTree()
     }
 
     QMap<int,QStandardItem *> map_group_item;
-    QMapIterator<int,QStandardItem *> it1(map_zone_item);
-    while (it1.hasNext()) {
-        it1.next();
-        QString sql = QString("SELECT id,name FROM groupInfo WHERE zone=%1 AND NOT id=1")
-                .arg(it1.key());
-        query.exec(sql);
-        while(query.next()){
-            int group_id=query.value(0).toInt();
-            QString group_name=query.value(1).toString();
-            QStandardItem *item = new QStandardItem(group_name);
-            item->setData(group_name);
-            map_group_item[group_id]=item;
-            it1.value()->appendRow(item);
-            qDebug()<<"group"<<group_id<<group_name;
+    QString sql = QString("SELECT * FROM groupInfo WHERE NOT id=1");
+    query.exec(sql);
+    while(query.next()){
+        int group_id=query.value(0).toInt();
+        QString group_name=query.value(1).toString();
+        int zone_id = query.value(2).toInt();
+        QStandardItem *item = new QStandardItem(group_name);
+        item->setData(group_name);
+        map_group_item[group_id]=item;
+        QStandardItem *item_zone=map_zone_item.value(zone_id,NULL);
+        if(item_zone!=NULL) {
+            item_zone->appendRow(item);
+        } else {
+            parentItem->appendRow(item);
         }
-//        it1++;
+        qDebug()<<"group"<<group_id<<group_name;
     }
 
     QMap<int,QStandardItem *> map_device_item;
@@ -399,8 +422,6 @@ void DataHandler::getDeviceTree()
         }
     }
 
-    mModelTree->clear();
-    QStandardItem *parentItem = mModelTree->invisibleRootItem();
     QMapIterator<int,QStandardItem *> it3(map_zone_item);
     while (it3.hasNext()) {
         it3.next();
@@ -667,7 +688,7 @@ void DataHandler::updateDeviceDetail()
     bool r1 = query.exec(sql);
     qDebug()<<r1<<sql;
     QMap<QString,QString> detail_info;
-    while(query.next()){
+    if(query.next()){
         detail_info["5clientId"]=QString::number(query.value(0).toInt());
         //    detail_info["6clientAddress"]=device_address;
         detail_info["4manufacturer"]=query.value(4).toString();
@@ -675,7 +696,12 @@ void DataHandler::updateDeviceDetail()
         detail_info["2installationDate"]=query.value(6).toString();
         detail_info["1batteryVolume"]=QString::number(query.value(7).toFloat());
         //    detail_info["7zone"]=device_zone;
+
         detail_info["8group"]=QString::number(query.value(8).toInt());
+        sql = QString("SELECT name FROM groupInfo WHERE id=%1;").arg(query.value(8).toInt());
+        if(query.exec(sql)&&query.next()){
+            detail_info["8group"]=query.value(0).toString();
+        }
     }
     onDeviceSelected(detail_info);
 }
@@ -714,6 +740,17 @@ void DataHandler::getLastPowerInfo(int client)
 
         break;
     }
+}
+
+void DataHandler::onWarningTaskAppend(int battery)
+{
+    QSqlQuery query;
+    QString sql = QString("INSERT INTO taskInfo (battery,task_time,task_state) "
+                          "VALUES (%1,datetime('now','localtime'),0);").arg(battery);
+    bool r1=query.exec(sql);
+    qDebug()<<r1<<sql;
+
+    emit sigTaskUpdate();
 }
 
 void DataHandler::slotItemClicked(const QModelIndex &index)
@@ -755,7 +792,13 @@ void DataHandler::slotItemClicked(const QModelIndex &index)
     detail_info["2installationDate"]=device_install;
     detail_info["1batteryVolume"]=device_volume;
 //    detail_info["7zone"]=device_zone;
+
     detail_info["8group"]=device_group;
+    QSqlQuery query;
+    QString sql = QString("SELECT name FROM groupInfo WHERE id=%1;").arg(device_group.toInt());
+    if(query.exec(sql)&&query.next()){
+        detail_info["8group"]=query.value(0).toString();
+    }
     onDeviceSelected(detail_info);
 }
 
@@ -794,33 +837,34 @@ void DataHandler::slotAppendPowerInfo(QString data, bool valid)
         record_cnt=query.value(0).toInt();
     }
     QDate date_t;
-    date_t.setDate(2020,4,10);
+    date_t.setDate(2020,5,1);
     QDate date_f=QDate::currentDate();
     int day_valid=date_f.daysTo(date_t);
-    if(record_cnt<=3360&&day_valid>0){
-        QString sql2=QString("INSERT INTO batteryPowerInfo "
-                             "(clientId,clientIp,clientMac,clientAddress,rate,voltage,current,volume,"
-                             "temp,direction,count,alarm,interval,recordTime) "
-                             "VALUES (%1,'%2','%3',%4,%5,%6,%7,%8,%9,%10,%11,%12,%13,"
-                             "datetime('now','localtime'))")
-                .arg(identify_id)
-                .arg(identify_ip)
-                .arg(identify_mac)
-                .arg(identify_address)
-                .arg(property_rate)
-                .arg(property_voltage)
-                .arg(property_current)
-                .arg(property_volume)
-                .arg(property_temp)
-                .arg(property_direction)
-                .arg(property_count)
-                .arg(property_alarm)
-                .arg(property_interval);
-        bool r2=query.exec(sql2);
-        qDebug()<<r2<<sql2;
-    } else {
+    if(!(record_cnt<=3360&&day_valid>0)){
         qDebug()<<tr("Trial Period Expired");
+        return;
     }
+
+    QString sql2=QString("INSERT INTO batteryPowerInfo "
+                         "(clientId,clientIp,clientMac,clientAddress,rate,voltage,current,volume,"
+                         "temp,direction,count,alarm,interval,recordTime) "
+                         "VALUES (%1,'%2','%3',%4,%5,%6,%7,%8,%9,%10,%11,%12,%13,"
+                         "datetime('now','localtime'))")
+            .arg(identify_id)
+            .arg(identify_ip)
+            .arg(identify_mac)
+            .arg(identify_address)
+            .arg(property_rate)
+            .arg(property_voltage)
+            .arg(property_current)
+            .arg(property_volume)
+            .arg(property_temp)
+            .arg(property_direction)
+            .arg(property_count)
+            .arg(property_alarm)
+            .arg(property_interval);
+    bool r2=query.exec(sql2);
+    qDebug()<<r2<<sql2;
 
     if(mCurrentClient==identify_id){
         // todo
@@ -844,6 +888,10 @@ void DataHandler::slotAppendPowerInfo(QString data, bool valid)
     // 检查是否是新设备
     if(mDeviceWithoutGroupItem.find(identify_id)==mDeviceWithoutGroupItem.end()){
         onDeviceAppend(identify_id,identify_ip,identify_mac,identify_address);
+    }
+
+    if(property_alarm==1){
+        onWarningTaskAppend(identify_id);
     }
 }
 

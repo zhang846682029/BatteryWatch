@@ -28,6 +28,9 @@ public slots:
     void slotWarnMenu(const QPoint &pos);
     void slotActionWarnEditorTriggered(bool);
     void slotActionWarnMoreTriggered(bool);
+    void slotTaskMenu(const QPoint &pos);
+    void slotActionTaskEditorTriggered(bool);
+    void slotActionTaskMoreTriggered(bool);
 
     void slotActionChartsTriggered(bool);
 

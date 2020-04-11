@@ -28,7 +28,9 @@ SOURCES += main.cpp\
     warninghandler.cpp \
     dialogwarningmore.cpp \
     dialogrecordchart.cpp \
-    qchartviewbattery.cpp
+    qchartviewbattery.cpp \
+    dialogtaskeditor.cpp \
+    dialogtaskmore.cpp
 
 HEADERS  += mainwindow.h \
     batteryinfowidget.h \
@@ -42,14 +44,18 @@ HEADERS  += mainwindow.h \
     warninghandler.h \
     dialogwarningmore.h \
     dialogrecordchart.h \
-    qchartviewbattery.h
+    qchartviewbattery.h \
+    dialogtaskeditor.h \
+    dialogtaskmore.h
 
 FORMS += \
     mainwindow.ui \
     dialoggroupeditor.ui \
     dialogwarningsertting.ui \
     dialogwarningmore.ui \
-    dialogrecordchart.ui
+    dialogrecordchart.ui \
+    dialogtaskeditor.ui \
+    dialogtaskmore.ui
 
 RESOURCES += \
     ui-resource.qrc

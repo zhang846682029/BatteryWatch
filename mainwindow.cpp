@@ -6,6 +6,8 @@
 #include "dialogwarningsertting.h"
 #include "dialogwarningmore.h"
 #include "dialogrecordchart.h"
+#include "dialogtaskeditor.h"
+#include "dialogtaskmore.h"
 #include "warninghandler.h"
 #include <QStandardItemModel>
 #include <QHeaderView>
@@ -34,6 +36,12 @@ MainWindow::MainWindow(QWidget *parent) :
             Qt::UniqueConnection);
     connect(ui->actionEventMore,&QAction::triggered,\
             this,&MainWindow::slotActionWarnMoreTriggered,\
+            Qt::UniqueConnection);
+    connect(ui->actionTaskEditor,&QAction::triggered,\
+            this,&MainWindow::slotActionTaskEditorTriggered,\
+            Qt::UniqueConnection);
+    connect(ui->actionTaskMore,&QAction::triggered,\
+            this,&MainWindow::slotActionTaskMoreTriggered,\
             Qt::UniqueConnection);
     connect(ui->actionCharts,&QAction::triggered,\
             this,&MainWindow::slotActionChartsTriggered,\
@@ -71,13 +79,22 @@ MainWindow::MainWindow(QWidget *parent) :
 
     // Event/Warn
     mWarningHandler = new WarningHandler(this);
-    ui->tableViewWarnningInfo->setModel(mWarningHandler->getModelWarningInfo());
+//    ui->tableViewWarnningInfo->setModel(mWarningHandler->getModelWarningInfo());
+//    ui->tableViewWarnningInfo->horizontalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
+//    ui->tableViewWarnningInfo->setSelectionBehavior(QAbstractItemView::SelectRows);
+//    ui->tableViewWarnningInfo->setSelectionMode(QAbstractItemView::SingleSelection);
+//    ui->tableViewWarnningInfo->setContextMenuPolicy(Qt::CustomContextMenu);
+//    connect(ui->tableViewWarnningInfo, &QTreeView::customContextMenuRequested, \
+//            this, &MainWindow::slotWarnMenu);
+    ui->tableViewWarnningInfo->setModel(mWarningHandler->getModelWarningTaskInfo());
     ui->tableViewWarnningInfo->horizontalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
     ui->tableViewWarnningInfo->setSelectionBehavior(QAbstractItemView::SelectRows);
     ui->tableViewWarnningInfo->setSelectionMode(QAbstractItemView::SingleSelection);
     ui->tableViewWarnningInfo->setContextMenuPolicy(Qt::CustomContextMenu);
     connect(ui->tableViewWarnningInfo, &QTreeView::customContextMenuRequested, \
-            this, &MainWindow::slotWarnMenu);
+            this, &MainWindow::slotTaskMenu);
+    connect(mDataHandler,&DataHandler::sigTaskUpdate,\
+            mWarningHandler,&WarningHandler::onTaskAppend);
 }
 
 MainWindow::~MainWindow()
@@ -146,6 +163,30 @@ void MainWindow::slotActionWarnEditorTriggered(bool)
 void MainWindow::slotActionWarnMoreTriggered(bool)
 {
     DialogWarningMore *dlg = new DialogWarningMore(this);
+    dlg->exec();
+    delete dlg;
+}
+
+void MainWindow::slotTaskMenu(const QPoint &pos)
+{
+    QMenu *menu = new QMenu(ui->tableViewWarnningInfo);
+    menu->addAction(ui->actionTaskEditor);
+    menu->addAction(ui->actionTaskMore);
+    menu->exec(ui->tableViewWarnningInfo->mapToGlobal(pos));
+    delete menu;
+}
+
+void MainWindow::slotActionTaskEditorTriggered(bool)
+{
+    DialogTaskEditor *dlg = new DialogTaskEditor(this);
+    dlg->exec();
+    delete dlg;
+    mWarningHandler->updateWarningTaskModel();
+}
+
+void MainWindow::slotActionTaskMoreTriggered(bool)
+{
+    DialogTaskMore *dlg = new DialogTaskMore(this);
     dlg->exec();
     delete dlg;
 }

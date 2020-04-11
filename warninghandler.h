@@ -16,7 +16,12 @@ class WarningHandler : public QObject
 public:
     explicit WarningHandler(QObject *parent = 0);
     void initEventInfo(void);
+    void updateWarningTaskModel(void);
     inline QStandardItemModel *getModelWarningInfo(){return mModelWarningInfo;}
+    inline QStandardItemModel *getModelWarningTaskInfo(){return mModelWarningTaskInfo;}
+
+public slots:
+    void onTaskAppend(void);
 
 protected:
     void timerEvent(QTimerEvent *event);
@@ -51,6 +56,7 @@ private:
     QMap<int,QString> mEventDesc;
 
     QStandardItemModel *mModelWarningInfo;
+    QStandardItemModel *mModelWarningTaskInfo;
 };
 
 #endif // WARNINGHANDLER_H

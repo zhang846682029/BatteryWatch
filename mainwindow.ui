@@ -109,7 +109,7 @@ QTreeView::branch:has-siblings:!adjoins-item {
          <bool>false</bool>
         </attribute>
         <attribute name="horizontalHeaderStretchLastSection">
-         <bool>false</bool>
+         <bool>true</bool>
         </attribute>
         <attribute name="verticalHeaderVisible">
          <bool>false</bool>
@@ -163,6 +163,9 @@ QTreeView::branch:has-siblings:!adjoins-item {
     <addaction name="actionDeviceEditor"/>
     <addaction name="separator"/>
     <addaction name="actionEventEditor"/>
+    <addaction name="actionEventMore"/>
+    <addaction name="actionTaskEditor"/>
+    <addaction name="actionTaskMore"/>
    </widget>
    <widget class="QMenu" name="menuDate">
     <property name="title">
@@ -214,6 +217,22 @@ QTreeView::branch:has-siblings:!adjoins-item {
    </property>
    <property name="toolTip">
     <string>Record Charts</string>
+   </property>
+  </action>
+  <action name="actionTaskEditor">
+   <property name="text">
+    <string>Task Editor</string>
+   </property>
+   <property name="toolTip">
+    <string>Task Editor</string>
+   </property>
+  </action>
+  <action name="actionTaskMore">
+   <property name="text">
+    <string>Task More</string>
+   </property>
+   <property name="toolTip">
+    <string>Task More</string>
    </property>
   </action>
  </widget>

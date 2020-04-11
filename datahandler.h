@@ -18,6 +18,7 @@ public:
     inline QStandardItemModel *getModelDeviceInfo(){return mModelDetailInfo;}
 
     void creatTablePowerInfo(void); // 电池电量信息
+    void creatTableWarningTaskInfo(void); // 报警信息
     void creatTableWarningInfo(void); // 报警信息
     void creatTableEventInfo(void); // 报警事件类型
     void creatTableBatteryDetailInfo(void); // 电池详细信息 厂家，容量等
@@ -43,6 +44,8 @@ public:
 
     void getLastPowerInfo(int client);
 
+    void onWarningTaskAppend(int battery);
+
 signals:
     void sigTreeModelUpdate(void);
 
@@ -53,6 +56,8 @@ signals:
      * @param info
      */
     void sigUpdatePowerInfo(QMap<QString,int> &info);
+
+    void sigTaskUpdate(void);
 
 public slots:
 
