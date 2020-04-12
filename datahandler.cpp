@@ -14,6 +14,8 @@
 #include <QJsonObject>
 #include <QJsonDocument>
 #include <QJsonParseError>
+#include <QTimerEvent>
+#include <QStringListIterator>
 #include <QDebug>
 
 DataHandler::DataHandler(QObject *parent) : QObject(parent)
@@ -57,8 +59,9 @@ DataHandler::DataHandler(QObject *parent) : QObject(parent)
     initZoneAndGroup();
 
 
-    startTimer(1*1000); // 10秒刷新一次界面数据
+    mTimerOnline=startTimer(2*1000); // 10秒刷新一次界面数据
     // 库伦计60秒上传一次数据
+    mTimerInsert = startTimer(2*1000);
 
     getDeviceTree();
 
@@ -478,6 +481,59 @@ void DataHandler::updateOnlineStatus()
     }
 }
 
+void DataHandler::insertPowerInfo()
+{
+    if(mListPowerInfo.empty()){
+        return;
+    }
+
+    QSqlQuery query;
+    QSqlDatabase::database().transaction();
+    query.prepare("INSERT INTO batteryPowerInfo "
+                  "(clientId,clientIp,clientMac,clientAddress,rate,voltage,current,volume,"
+                  "temp,direction,count,alarm,interval,recordTime) "
+                  "VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,"
+                  "datetime('now','localtime'))");
+    foreach (QString data, mListPowerInfo) {
+        QJsonDocument json_doc=QJsonDocument::fromJson(data.toLatin1());
+        QJsonObject json_obj=json_doc.object();
+        QJsonObject json_obj_identify = json_obj.value("identify").toObject();
+        QString identify_ip = json_obj_identify.value("ip").toString();
+        QString identify_mac = json_obj_identify.value("mac").toString();
+        int identify_id = json_obj_identify.value("id").toInt();//电脑编号 1-60000
+        int identify_address = json_obj_identify.value("address").toInt();
+        QJsonObject json_obj_property = json_obj.value("property").toObject();
+        int property_rate = json_obj_property.value("rate").toInt();
+        int property_voltage = json_obj_property.value("voltage").toInt();
+        int property_current = json_obj_property.value("current").toInt();
+        int property_volume = json_obj_property.value("volume").toInt();
+        int property_temp = json_obj_property.value("temp").toInt();
+        int property_direction = json_obj_property.value("direction").toInt();
+        int property_count = json_obj_property.value("count").toInt();
+        int property_alarm = json_obj_property.value("alarm").toInt();
+        int property_interval = json_obj_property.value("interval").toInt();
+
+        query.addBindValue(identify_id);
+        query.addBindValue(identify_ip);
+        query.addBindValue(identify_mac);
+        query.addBindValue(identify_address);
+        query.addBindValue(property_rate);
+        query.addBindValue(property_voltage);
+        query.addBindValue(property_current);
+        query.addBindValue(property_volume);
+        query.addBindValue(property_temp);
+        query.addBindValue(property_direction);
+        query.addBindValue(property_count);
+        query.addBindValue(property_alarm);
+        query.addBindValue(property_interval);
+        bool r1=query.exec();
+        qDebug()<<"transaction"<<r1;
+    }
+    QSqlDatabase::database().commit();
+
+    mListPowerInfo.clear();
+}
+
 /**
  * @brief 1.原来属于这个组的 调整到默认分组
  *      2.删除组信息
@@ -708,15 +764,17 @@ void DataHandler::updateDeviceDetail()
 
 void DataHandler::getLastPowerInfo(int client)
 {
-    QString sql=QString("SELECT * FROM batteryPowerInfo "
+    QString sql=QString("SELECT *,max(recordTime) FROM batteryPowerInfo "
                         "WHERE recordTime > datetime('now','localtime','-1 day') "
-                        "AND clientId=%1 "
-                        "ORDER BY recordTime DESC").arg(client);
+                        "GROUP BY clientId;");
     QSqlQuery query;
     bool r1=query.exec(sql);
     qDebug()<<r1<<sql;
     while(query.next()){
         int id = query.value(1).toInt();
+        if(id!=client){
+            continue;
+        }
         int rate = query.value(5).toInt();
         int voltage = query.value(6).toInt();
         int current = query.value(7).toInt();
@@ -792,7 +850,6 @@ void DataHandler::slotItemClicked(const QModelIndex &index)
     detail_info["2installationDate"]=device_install;
     detail_info["1batteryVolume"]=device_volume;
 //    detail_info["7zone"]=device_zone;
-
     detail_info["8group"]=device_group;
     QSqlQuery query;
     QString sql = QString("SELECT name FROM groupInfo WHERE id=%1;").arg(device_group.toInt());
@@ -845,6 +902,9 @@ void DataHandler::slotAppendPowerInfo(QString data, bool valid)
         return;
     }
 
+#if 1
+    mListPowerInfo.append(data);
+#else
     QString sql2=QString("INSERT INTO batteryPowerInfo "
                          "(clientId,clientIp,clientMac,clientAddress,rate,voltage,current,volume,"
                          "temp,direction,count,alarm,interval,recordTime) "
@@ -865,6 +925,7 @@ void DataHandler::slotAppendPowerInfo(QString data, bool valid)
             .arg(property_interval);
     bool r2=query.exec(sql2);
     qDebug()<<r2<<sql2;
+#endif
 
     if(mCurrentClient==identify_id){
         // todo
@@ -897,5 +958,11 @@ void DataHandler::slotAppendPowerInfo(QString data, bool valid)
 
 void DataHandler::timerEvent(QTimerEvent *event)
 {
-    updateOnlineStatus();
+    int id=event->timerId();
+    if(id==mTimerInsert){
+        insertPowerInfo();
+    }
+    if(id==mTimerOnline){
+        updateOnlineStatus();
+    }
 }

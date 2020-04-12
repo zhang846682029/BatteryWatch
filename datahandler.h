@@ -30,6 +30,9 @@ public:
     void getRealtimeDataFromDb(void); //
     void getDeviceTree(void);
     void updateOnlineStatus(void);
+    // 批量插入数据
+    // 每2秒插入一次
+    void insertPowerInfo(void);
 
     void onGroupDelete(int id);
     void onZoneDelete(int id);
@@ -89,6 +92,10 @@ private:
     QMap<int,QStandardItem *> mDeviceWithoutGroupItem;
 
     QStandardItemModel *mModelDetailInfo;
+
+    QStringList mListPowerInfo;
+    int mTimerInsert;
+    int mTimerOnline;
 };
 
 #endif // DATAHANDLER_H

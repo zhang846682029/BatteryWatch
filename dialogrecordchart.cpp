@@ -17,7 +17,8 @@ DialogRecordChart::DialogRecordChart(QWidget *parent) :
 
     QDate date_tt = QDate::currentDate();
     ui->dateEditBegin->setDate(date_tt);
-    ui->dateEditEnd->setDate(date_tt.addDays(1));
+//    ui->dateEditEnd->setDate(date_tt.addDays(1));
+    ui->dateEditEnd->setDate(date_tt);
 
     initProperty();
     initBattery();
