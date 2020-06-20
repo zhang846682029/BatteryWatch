@@ -23,14 +23,21 @@ BatteryInfoWidget::BatteryInfoWidget(QWidget *parent) : QWidget(parent)
 
 void BatteryInfoWidget::draw(QPainter *painter)
 {
-    painter->setPen(Qt::white);
+    painter->setPen(Qt::NoPen);
+    painter->setBrush(QColor(36, 37, 65));
     painter->drawRect(0,0,640,480);
 
-    painter->drawLine(0,40,640,40);
-    const QRect rectangle = QRect(0, 0, 640, 40);
+    painter->setPen(Qt::gray);
+    painter->save();
+//    painter->drawLine(0,40,640,40);
+    const QRect rectangle = QRect(0, 0, 640, 60);
+    QFont serifFont("Times", 15, QFont::Bold);
+    painter->setFont(serifFont);
     painter->drawText(rectangle, Qt::AlignCenter, tr("Battery Info"));
+    painter->restore();
 
-    painter->drawLine(0,440,640,440);
+//    painter->drawLine(0,440,640,440);
+    painter->setPen(Qt::gray);
     const QRect rectangle1 = QRect(0, 440, 640, 40);
     QStringList power_status;
     power_status<<tr("Discharge")<<tr("Charge")<<tr("Idle");
@@ -42,8 +49,8 @@ void BatteryInfoWidget::draw(QPainter *painter)
     // 电池容量百分比
     painter->translate(110,290);
     QRadialGradient gradient(0,0,100,0,50);
-    gradient.setColorAt(0.0,Qt::darkGray);
-    gradient.setColorAt(1.0,QColor(40,40,40));
+    gradient.setColorAt(0.0,QColor(44, 124, 202));
+    gradient.setColorAt(1.0,QColor(36, 37, 65));
     painter->setBrush(gradient);
     painter->drawEllipse(-100,-100,200,200);
     painter->setBrush(Qt::black);
@@ -83,8 +90,8 @@ void BatteryInfoWidget::draw(QPainter *painter)
     // 电池剩余容量
     painter->translate(230,160);
     QRadialGradient gradient1(0,0,50,0,25);
-    gradient1.setColorAt(0.0,Qt::darkGray);
-    gradient1.setColorAt(1.0,QColor(40,40,40));
+    gradient1.setColorAt(0.0,QColor(44, 124, 202));
+    gradient1.setColorAt(1.0,QColor(36, 37, 65));
     painter->setBrush(gradient1);
     painter->drawEllipse(-50,-50,100,100);
     painter->setBrush(Qt::black);
@@ -132,8 +139,8 @@ void BatteryInfoWidget::draw(QPainter *painter)
 //    painter->drawEllipse(360,110,100,100);
     painter->translate(410,160);
     QRadialGradient gradient2(0,0,50,0,25);
-    gradient2.setColorAt(0.0,Qt::darkGray);
-    gradient2.setColorAt(1.0,QColor(40,40,40));
+    gradient2.setColorAt(0.0,QColor(44, 124, 202));
+    gradient2.setColorAt(1.0,QColor(36, 37, 65));
     painter->setBrush(gradient2);
     painter->drawEllipse(-50,-50,100,100);
     painter->setBrush(Qt::black);
@@ -181,8 +188,8 @@ void BatteryInfoWidget::draw(QPainter *painter)
 //    painter->drawEllipse(430,190,200,200);
     painter->translate(530,290);
     QRadialGradient gradient3(0,0,100,0,50);
-    gradient3.setColorAt(0.0,Qt::darkGray);
-    gradient3.setColorAt(1.0,QColor(40,40,40));
+    gradient3.setColorAt(0.0,QColor(44, 124, 202));
+    gradient3.setColorAt(1.0,QColor(36, 37, 65));
     painter->setBrush(gradient3);
     painter->drawEllipse(-100,-100,200,200);
     painter->setBrush(Qt::black);

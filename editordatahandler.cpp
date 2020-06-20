@@ -561,9 +561,9 @@ void EditorDataHandler::onDeviceAppend(int id, QString ip, QString mac, int addr
 {
     QSqlQuery query;
     QString sql=QString("INSERT INTO batteryDetailInfo "
-                        "(clientId,clientIp,clientMac,clientAddress,groupId) "
-                        "VALUES (%1,'%2','%3',%4,1)")
-            .arg(id).arg(ip).arg(mac).arg(address);
+                        "(clientId,clientIp,clientAddress,groupId) "
+                        "VALUES (%1,'%2',%3,1)")
+            .arg(id).arg(ip).arg(address);
     bool r1 = query.exec(sql);
     qDebug()<<__FUNCTION__<<r1<<sql;
 }

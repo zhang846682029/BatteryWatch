@@ -446,14 +446,14 @@ void DataHandler::getDeviceTree()
         it4.next();
         auto it5 = mOnlineTime.find(it4.key());
         if(it5==mOnlineTime.end()){
-            it4.value()->setForeground(QBrush(Qt::gray));
+            it4.value()->setForeground(QBrush(Qt::red));
         } else {
             QTime time_tt = QTime::currentTime();
             int interval=time_tt.secsTo(it5.value());
             if(interval>3*60){
-                it4.value()->setForeground(QBrush(Qt::gray));
+                it4.value()->setForeground(QBrush(Qt::red));
             } else {
-                it4.value()->setForeground(QBrush(Qt::green));
+                it4.value()->setForeground(QBrush(Qt::gray));
             }
         }
     }
@@ -468,14 +468,14 @@ void DataHandler::updateOnlineStatus()
         it4.next();
         auto it5 = mOnlineTime.find(it4.key());
         if(it5==mOnlineTime.end()){
-            it4.value()->setForeground(QBrush(Qt::gray));
+            it4.value()->setForeground(QBrush(Qt::red));
         } else {
             QTime time_tt = QTime::currentTime();
             int interval=it5.value().secsTo(time_tt);
             if(interval>3*60){
-                it4.value()->setForeground(QBrush(Qt::gray));
+                it4.value()->setForeground(QBrush(Qt::red));
             } else {
-                it4.value()->setForeground(QBrush(Qt::green));
+                it4.value()->setForeground(QBrush(Qt::gray));
             }
         }
     }
@@ -490,16 +490,16 @@ void DataHandler::insertPowerInfo()
     QSqlQuery query;
     QSqlDatabase::database().transaction();
     query.prepare("INSERT INTO batteryPowerInfo "
-                  "(clientId,clientIp,clientMac,clientAddress,rate,voltage,current,volume,"
+                  "(clientId,clientIp,clientAddress,rate,voltage,current,volume,"
                   "temp,direction,count,alarm,interval,recordTime) "
-                  "VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,"
+                  "VALUES (?,?,?,?,?,?,?,?,?,?,?,?,"
                   "datetime('now','localtime'))");
     foreach (QString data, mListPowerInfo) {
         QJsonDocument json_doc=QJsonDocument::fromJson(data.toLatin1());
         QJsonObject json_obj=json_doc.object();
         QJsonObject json_obj_identify = json_obj.value("identify").toObject();
         QString identify_ip = json_obj_identify.value("ip").toString();
-        QString identify_mac = json_obj_identify.value("mac").toString();
+//        QString identify_mac = json_obj_identify.value("mac").toString();
         int identify_id = json_obj_identify.value("id").toInt();//电脑编号 1-60000
         int identify_address = json_obj_identify.value("address").toInt();
         QJsonObject json_obj_property = json_obj.value("property").toObject();
@@ -515,7 +515,7 @@ void DataHandler::insertPowerInfo()
 
         query.addBindValue(identify_id);
         query.addBindValue(identify_ip);
-        query.addBindValue(identify_mac);
+//        query.addBindValue(identify_mac);
         query.addBindValue(identify_address);
         query.addBindValue(property_rate);
         query.addBindValue(property_voltage);
@@ -686,9 +686,9 @@ void DataHandler::onDeviceAppend(int id, QString ip, QString mac, int address)
     }
     if(battery_cnt<5){
         QString sql=QString("INSERT INTO batteryDetailInfo "
-                            "(clientId,clientIp,clientMac,clientAddress,groupId) "
-                            "VALUES (%1,'%2','%3',%4,1)")
-                .arg(id).arg(ip).arg(mac).arg(address);
+                            "(clientId,clientIp,clientAddress,groupId) "
+                            "VALUES (%1,'%2',%3,1)")
+                .arg(id).arg(ip).arg(address);
         bool r1 = query.exec(sql);
         qDebug()<<__FUNCTION__<<r1<<sql;
     }
@@ -731,6 +731,7 @@ void DataHandler::onDeviceSelected(QMap<QString, QString> info)
         if(i.key()==QString("8group")) item_key = new QStandardItem(tr("group"));
         if(item_key == NULL) continue;
         item_key->setEditable(false);
+        item_value->setEditable(false);
         mModelDetailInfo->setItem(row_index, 0, item_key);
         mModelDetailInfo->setItem(row_index, 1, item_value);
         row_index++;
@@ -894,7 +895,7 @@ void DataHandler::slotAppendPowerInfo(QString data, bool valid)
         record_cnt=query.value(0).toInt();
     }
     QDate date_t;
-    date_t.setDate(2020,5,1);
+    date_t.setDate(2020,6,6);
     QDate date_f=QDate::currentDate();
     int day_valid=date_f.daysTo(date_t);
     if(!(record_cnt<=3360&&day_valid>0)){

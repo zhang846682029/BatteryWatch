@@ -13,7 +13,17 @@
   <property name="windowTitle">
    <string>BatteryMonitor</string>
   </property>
+  <property name="styleSheet">
+   <string notr="true">QTabelView#centrolWidget{
+	color: rgb(255, 0, 127);
+	background-color: rgb(72, 72, 72);
+	border-color: rgb(16, 16, 16);
+}</string>
+  </property>
   <widget class="QWidget" name="centralwidget">
+   <property name="styleSheet">
+    <string notr="true">background-color: rgb(26, 28, 51);</string>
+   </property>
    <layout class="QVBoxLayout" name="verticalLayout">
     <item>
      <layout class="QHBoxLayout" name="horizontalLayout_2">
@@ -32,7 +42,10 @@
          </size>
         </property>
         <property name="styleSheet">
-         <string notr="true">
+         <string notr="true">background-color: rgb(36, 37, 65);
+border:none;
+color:gray;
+
 QTreeView::branch:has-siblings:!adjoins-item {
       border-image: url(:/images/stylesheet-vline.png) 0;
   }
@@ -82,6 +95,9 @@ QTreeView::branch:has-siblings:!adjoins-item {
           <height>480</height>
          </size>
         </property>
+        <property name="styleSheet">
+         <string notr="true">background-color: rgb(36, 37, 65);</string>
+        </property>
        </widget>
       </item>
      </layout>
@@ -101,6 +117,26 @@ QTreeView::branch:has-siblings:!adjoins-item {
           <width>16777215</width>
           <height>180</height>
          </size>
+        </property>
+        <property name="styleSheet">
+         <string notr="true">background-color: rgb(36, 37, 65);
+border:none;
+color:gray;</string>
+        </property>
+        <property name="verticalScrollBarPolicy">
+         <enum>Qt::ScrollBarAlwaysOff</enum>
+        </property>
+        <property name="horizontalScrollBarPolicy">
+         <enum>Qt::ScrollBarAlwaysOff</enum>
+        </property>
+        <property name="editTriggers">
+         <set>QAbstractItemView::NoEditTriggers</set>
+        </property>
+        <property name="selectionMode">
+         <enum>QAbstractItemView::NoSelection</enum>
+        </property>
+        <property name="selectionBehavior">
+         <enum>QAbstractItemView::SelectRows</enum>
         </property>
         <attribute name="horizontalHeaderVisible">
          <bool>false</bool>
@@ -129,6 +165,23 @@ QTreeView::branch:has-siblings:!adjoins-item {
           <width>16777215</width>
           <height>180</height>
          </size>
+        </property>
+        <property name="styleSheet">
+         <string notr="true">background-color: rgb(36, 37, 65);
+border:none;
+color:gray;</string>
+        </property>
+        <property name="verticalScrollBarPolicy">
+         <enum>Qt::ScrollBarAlwaysOff</enum>
+        </property>
+        <property name="horizontalScrollBarPolicy">
+         <enum>Qt::ScrollBarAlwaysOff</enum>
+        </property>
+        <property name="selectionMode">
+         <enum>QAbstractItemView::NoSelection</enum>
+        </property>
+        <property name="selectionBehavior">
+         <enum>QAbstractItemView::SelectRows</enum>
         </property>
         <attribute name="horizontalHeaderVisible">
          <bool>false</bool>

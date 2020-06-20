@@ -47,11 +47,10 @@ MainWindow::MainWindow(QWidget *parent) :
             this,&MainWindow::slotActionChartsTriggered,\
             Qt::UniqueConnection);
 
-    QPalette pal(this->palette());
-    pal.setColor(QPalette::Background, QColor(60,60,60,200));
-    this->setAutoFillBackground(true);
-    this->setPalette(pal);
-    //    setStyleSheet("background-color:#282828;");
+//    QPalette pal(this->palette());
+//    pal.setColor(QPalette::Background, QColor(60,60,60,200));
+//    this->setAutoFillBackground(true);
+//    this->setPalette(pal);
 
     mTcpServer = new Server(this,7869);
     mDataHandler = new DataHandler(this);
@@ -74,8 +73,8 @@ MainWindow::MainWindow(QWidget *parent) :
 
     ui->tableViewDeviceDetail->setModel(mDataHandler->getModelDeviceInfo());
     ui->tableViewDeviceDetail->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
-    ui->tableViewDeviceDetail->setSelectionBehavior(QAbstractItemView::SelectRows);
-    ui->tableViewDeviceDetail->setSelectionMode(QAbstractItemView::SingleSelection);
+//    ui->tableViewDeviceDetail->setSelectionBehavior(QAbstractItemView::SelectRows);
+//    ui->tableViewDeviceDetail->setSelectionMode(QAbstractItemView::SingleSelection);
 
     // Event/Warn
     mWarningHandler = new WarningHandler(this);
@@ -88,8 +87,8 @@ MainWindow::MainWindow(QWidget *parent) :
 //            this, &MainWindow::slotWarnMenu);
     ui->tableViewWarnningInfo->setModel(mWarningHandler->getModelWarningTaskInfo());
     ui->tableViewWarnningInfo->horizontalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
-    ui->tableViewWarnningInfo->setSelectionBehavior(QAbstractItemView::SelectRows);
-    ui->tableViewWarnningInfo->setSelectionMode(QAbstractItemView::SingleSelection);
+//    ui->tableViewWarnningInfo->setSelectionBehavior(QAbstractItemView::SelectRows);
+//    ui->tableViewWarnningInfo->setSelectionMode(QAbstractItemView::SingleSelection);
     ui->tableViewWarnningInfo->setContextMenuPolicy(Qt::CustomContextMenu);
     connect(ui->tableViewWarnningInfo, &QTreeView::customContextMenuRequested, \
             this, &MainWindow::slotTaskMenu);
